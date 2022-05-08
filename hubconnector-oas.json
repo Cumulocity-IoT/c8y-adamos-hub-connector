@@ -1,0 +1,910 @@
+{
+    "openapi": "3.0.2",
+    "info": {
+        "title": "ADAMOS Hub Connector",
+        "version": "1.0"
+    },
+    "servers": [
+        {
+            "url": "https://[tenant].[instance]/service/hubconnector",
+            "description": "dummy server that is used in the example code when exporting as html2"
+        }
+    ],
+    "components": {
+        "schemas": {
+            "Address": {
+                "type": "object",
+                "properties": {
+                    "city": {
+                        "type": "string"
+                    },
+                    "country": {
+                        "type": "string"
+                    },
+                    "postalCode": {
+                        "type": "string"
+                    },
+                    "region": {
+                        "type": "string"
+                    },
+                    "street": {
+                        "type": "string"
+                    }
+                },
+                "title": "Address"
+            },
+            "Manufacturer": {
+                "type": "object",
+                "required": [
+                    "name",
+                    "uuid",
+                    "version"
+                ],
+                "properties": {
+                    "address": {
+                        "$ref": "#/components/schemas/Address"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "shortName": {
+                        "type": "string"
+                    },
+                    "uuid": {
+                        "type": "string"
+                    },
+                    "version": {
+                        "type": "integer",
+                        "format": "int32"
+                    }
+                },
+                "title": "Manufacturer"
+            },
+            "Equipment": {
+                "type": "object",
+                "properties": {
+                    "type": {
+                        "type": "string"
+                    },
+                    "version": {
+                        "type": "integer"
+                    },
+                    "manufacturerId": {
+                        "type": "string"
+                    },
+                    "manufacturerName": {
+                        "type": "string"
+                    },
+                    "components": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "customerIdentification": {
+                        "$ref": "#/components/schemas/CustomerIdentification"
+                    },
+                    "equipmentType": {
+                        "type": "string"
+                    },
+                    "locationIdentification": {
+                        "$ref": "#/components/schemas/LocationIdentification"
+                    },
+                    "manufacturerIdentification": {
+                        "$ref": "#/components/schemas/ManufacturerIdentification"
+                    },
+                    "modelVersion": {
+                        "type": "string"
+                    },
+                    "systemSoftware": {
+                        "$ref": "#/components/schemas/SystemSoftware"
+                    },
+                    "typePlate": {
+                        "$ref": "#/components/schemas/TypePlate"
+                    }
+                }
+            },
+            "CustomerIdentification": {
+                "type": "object",
+                "properties": {
+                    "comment": {
+                        "type": "string"
+                    },
+                    "inventoryNumber": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "supervisorName": {
+                        "type": "string"
+                    }
+                }
+            },
+            "LocationIdentification": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    }
+                },
+                "title": "LocationIdentification"
+            },
+            "ManufacturerIdentification": {
+                "type": "object",
+                "properties": {
+                    "buildYear": {
+                        "type": "string"
+                    },
+                    "oemUniqueTypeIdentifier": {
+                        "type": "string"
+                    },
+                    "serialNumber": {
+                        "type": "string"
+                    },
+                    "internalName": {
+                        "type": "string"
+                    },
+                    "manufacturingNumber": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "owner": {
+                        "$ref": "#/components/schemas/Owner"
+                    }
+                }
+            },
+            "Owner": {
+                "type": "object",
+                "properties": {
+                    "applicationId": {
+                        "type": "string"
+                    },
+                    "clientId": {
+                        "type": "string"
+                    },
+                    "tenantId": {
+                        "type": "string"
+                    },
+                    "userId": {
+                        "type": "string"
+                    }
+                },
+                "title": "Owner"
+            },
+            "Software": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "version": {
+                        "type": "string"
+                    }
+                },
+                "title": "Software"
+            },
+            "SystemSoftware": {
+                "type": "object",
+                "properties": {
+                    "assignedPackages": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Software"
+                        }
+                    },
+                    "mainSoftware": {
+                        "$ref": "#/components/schemas/Software"
+                    }
+                },
+                "title": "SystemSoftware"
+            },
+            "TypePlate": {
+                "type": "object",
+                "properties": {
+                    "compressedAir": {
+                        "$ref": "#/components/schemas/TypePlateCompressedAir"
+                    },
+                    "electrical": {
+                        "$ref": "#/components/schemas/TypePlateElectrical"
+                    },
+                    "mechanical": {
+                        "$ref": "#/components/schemas/TypePlateMechanical"
+                    }
+                },
+                "title": "TypePlate"
+            },
+            "TypePlateCompressedAir": {
+                "type": "object",
+                "properties": {
+                    "pressureMax": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "pressureMin": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "pressureNominal": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "volumeFlowNominal": {
+                        "type": "number",
+                        "format": "double"
+                    }
+                },
+                "title": "TypePlateCompressedAir"
+            },
+            "TypePlateElectrical": {
+                "type": "object",
+                "properties": {
+                    "currentMax": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "currentNominal": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "frequencyNominal": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "powerMax": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "powerNominal": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "voltageNominal": {
+                        "type": "number",
+                        "format": "double"
+                    }
+                },
+                "title": "TypePlateElectrical"
+            },
+            "TypePlateMechanical": {
+                "type": "object",
+                "properties": {
+                    "weight": {
+                        "type": "number",
+                        "format": "double"
+                    }
+                },
+                "title": "TypePlateMechanical"
+            },
+            "OAuth2Token": {
+                "type": "object",
+                "properties": {
+                    "expiresIn": {
+                        "type": "number",
+                        "format": "integer"
+                    },
+                    "accessToken": {
+                        "type": "string"
+                    },
+                    "tokenType": {
+                        "type": "string"
+                    }
+                }
+            },
+            "GlobalSettings": {
+                "type": "object",
+                "properties": {
+                    "OAuth2Credentials": {
+                        "$ref": "#/components/schemas/OAuth2Credentials"
+                    },
+                    "defaultSyncConfiguration": {
+                        "$ref": "#/components/schemas/GlobalSyncConfiguration"
+                    }
+                }
+            },
+            "OAuth2Credentials": {
+                "type": "object",
+                "properties": {
+                    "client_id": {
+                        "type": "string"
+                    },
+                    "client_secret": {
+                        "type": "string"
+                    },
+                    "grant_type": {
+                        "type": "string"
+                    }
+                }
+            },
+            "GlobalSyncConfiguration": {
+                "type": "object",
+                "properties": {
+                    "hubToAdamos": {
+                        "$ref": "#/components/schemas/HubToC8YSyncConfiguration"
+                    },
+                    "adamosToHub": {
+                        "$ref": "#/components/schemas/C8YToHubSyncConfiguration"
+                    }
+                }
+            },
+            "HubToC8YSyncConfiguration": {
+                "type": "object",
+                "properties": {
+                    "c8yIsDevice": {
+                        "type": "boolean"
+                    }
+                }
+            },
+            "C8YToHubSyncConfiguration": {
+                "type": "object",
+                "properties": {
+                    "create": {
+                        "type": "boolean"
+                    },
+                    "update": {
+                        "type": "boolean"
+                    },
+                    "delete": {
+                        "type": "boolean"
+                    }
+                }
+            },
+            "EventRules": {
+                "type": "object",
+                "properties": {
+                    "direction": {
+                        "type": "string",
+                        "enum": [
+                            "TO_HUB",
+                            "FROM_HUB"
+                        ]
+                    },
+                    "rules": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/EventRule"
+                        }
+                    }
+                }
+            },
+            "EventRule": {
+                "type": "object",
+                "properties": {
+                    "direction": {
+                        "type": "string",
+                        "enum": [
+                            "TO_HUB",
+                            "FROM_HUB"
+                        ]
+                    },
+                    "eventTrigger": {
+                        "$ref": "#/components/schemas/EventTrigger"
+                    },
+                    "eventProcessor": {
+                        "$ref": "#/components/schemas/EventProcessor"
+                    },
+                    "payloadProcessingMode": {
+                        "type": "string",
+                        "enum": [
+                            "ALL",
+                            "NONE",
+                            "SELECTION",
+                            "CUSTOM"
+                        ]
+                    },
+                    "output": {
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "isEnabled": {
+                        "type": "boolean"
+                    }
+                }
+            },
+            "EventTrigger": {
+                "type": "object",
+                "properties": {
+                    "eventCode": {
+                        "type": "string"
+                    },
+                    "referenceObjectType": {
+                        "type": "string"
+                    },
+                    "referenceObjectIds": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "EventProcessor": {
+                "type": "object",
+                "properties": {
+                    "channel": {
+                        "type": "string",
+                        "enum": [
+                            "EVENTS",
+                            "MEASUREMENTS",
+                            "ALARMS",
+                            "COMMANDS"
+                        ]
+                    },
+                    "processingMode": {
+                        "type": "string",
+                        "enum": [
+                            "PERSISTENT",
+                            "TRANSIENT",
+                            "QUIESCENT",
+                            "CEP"
+                        ]
+                    }
+                }
+            },
+            "TreeNode": {
+              "type": "object",
+              "properties": {
+                "children": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TreeNode"
+                  }
+                },
+                "data": {
+                  "type": "object"
+                }
+              }
+            }
+        },
+        "responses": {
+            "internalServerError500": {
+                "description": "Internal server error.",
+                "links": {}
+            },
+            "unauthorizedError401": {
+                "description": "Authentication information is missing or invalid. ",
+                "links": {}
+            },
+            "forbiddenError403": {
+                "description": "The user is not allowed to use this API.",
+                "links": {}
+            },
+            "notFoundError404": {
+                "description": "The entity with the specified id is not found.",
+                "links": {}
+            }
+        }
+    },
+    "paths": {
+        "/assets": {
+            "get": {
+                "description": "Get all machines from ADAMOS Hub. <br>Required permission: ROLE_ADAMOS_HUB_READ",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Equipment"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/unauthorizedError401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/forbiddenError403"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/notFoundError404"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/internalServerError500"
+                    }
+                }
+            }
+        },
+        "/assets/{id}": {
+            "get": {
+                "description": "Get a specific machine from ADAMOS Hub.  <br>Required permission: ROLE_ADAMOS_HUB_READ",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "$ref": "#/components/schemas/Equipment"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/unauthorizedError401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/forbiddenError403"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/notFoundError404"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/internalServerError500"
+                    }
+                }
+            }
+        },
+        "/token": {
+            "get": {
+                "description": "Get the current OAuth2 token. <br>Required permission: ROLE_ADAMOS_HUB_ADMIN",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "$ref": "#/components/schemas/OAuth2Token"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/unauthorizedError401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/forbiddenError403"
+                    }
+                }
+            }
+        },
+        "/manufacturerIdentities": {
+            "get": {
+                "description": "Get all manufacturers from ADAMOS Hub. <br>Required permission: ROLE_ADAMOS_HUB_READ",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Manufacturer"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/unauthorizedError401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/forbiddenError403"
+                    }
+                }
+            }
+        },
+        "/hierarchy/tree": {
+            "get": {
+                "description": "Get the ISA95 tree of assets from ADAMOS Hub. <br>Required permission: ROLE_ADAMOS_HUB_READ",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                          "application/json": {
+                              "schema": {
+                                  "type": "object",
+                                  "$ref": "#/components/schemas/TreeNode"
+                              }
+                          }
+                      }
+                    }
+                }
+            }
+        },
+        "/globalSettings": {
+            "get": {
+                "description": "Fetch the Hub Connector settings. <br>Required permission: ROLE_ADAMOS_HUB_ADMIN",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "$ref": "#/components/schemas/GlobalSettings"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/unauthorizedError401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/forbiddenError403"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/notFoundError404"
+                    }
+                }
+            },
+            "put": {
+                "description": "Update the Hub Connector settings. <br>Required permission: ROLE_ADAMOS_HUB_ADMIN",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/GlobalSettings"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/unauthorizedError401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/forbiddenError403"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/notFoundError404"
+                    }
+                }
+            }
+        },
+        "/synchronization/toHub/{id}": {
+            "post": {
+                "description": "Synchronize a Cumulocity IoT device to the ADAMOS Hub. <br>Required permission: ROLE_ADAMOS_HUB_ADMIN",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "$ref": "https://cumulocity.com/api/dist/c8y-oas.json#/components/schemas/managedObject"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/unauthorizedError401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/forbiddenError403"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/notFoundError404"
+                    }
+                }
+            }
+        },
+        "/synchronization/unlink/{id}": {
+            "post": {
+                "description": "Remove the association between a Cumulocity IoT device and a machine on ADAMOS Hub. Only removes the ADAMOS Hub details from the Cumulocity IoT device. <br>Required permission: ROLE_ADAMOS_HUB_ADMIN",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/unauthorizedError401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/forbiddenError403"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/notFoundError404"
+                    }
+                }
+            }
+        },
+        "/synchronization/fromHub/{uuid}": {
+            "post": {
+                "description": "Register a machine from ADAMOS Hub as a device in Cumulocity IoT. <br>Required permission: ROLE_ADAMOS_HUB_ADMIN",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "uuid",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "$ref": "https://cumulocity.com/api/dist/c8y-oas.json#/components/schemas/managedObject"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/unauthorizedError401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/forbiddenError403"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/notFoundError404"
+                    }
+                }
+            }
+        },
+        "/synchronization/fromHub": {
+            "post": {
+                "description": "Register all machines from ADAMOS Hub as devices in Cumulocity IoT. <br>Required permission: ROLE_ADAMOS_HUB_ADMIN",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "isDevice",
+                        "description": "Should the devices in Cumulocity get the isDevice flag. Default: false",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "includeHierarchy",
+                        "description": "Should other hierarchy objects (plants, areas, work centers) be synchronized as well. Default: false",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/unauthorizedError401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/forbiddenError403"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/notFoundError404"
+                    }
+                }
+            }
+        },
+        "/synchronization/resync/{uuid}": {
+            "post": {
+                "description": "Update the ADAMOS Hub machine details in the linked Cumulocity IoT device. <br>Required permission: ROLE_ADAMOS_HUB_ADMIN",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "uuid",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "$ref": "https://cumulocity.com/api/dist/c8y-oas.json#/components/schemas/managedObject"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/unauthorizedError401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/forbiddenError403"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/notFoundError404"
+                    }
+                }
+            }
+        },
+        "/eventRules": {
+            "get": {
+                "description": "Get all event rules from ADAMOS Hub. <br>Required permission: ROLE_ADAMOS_HUB_READ",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "$ref": "#/components/schemas/EventRules"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/unauthorizedError401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/forbiddenError403"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/notFoundError404"
+                    }
+                }
+            },
+            "put": {
+                "description": "Update event rules on ADAMOS Hub. <br>Required permission: ROLE_ADAMOS_HUB_UPDATE",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/EventRules"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/unauthorizedError401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/forbiddenError403"
+                    }
+                }
+            }
+        }
+    }
+}

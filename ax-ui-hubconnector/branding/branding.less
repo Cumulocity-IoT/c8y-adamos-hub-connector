@@ -1,0 +1,207 @@
+@import '~@c8y/style/extend.less';
+
+// Replace and uncommnet each variable as you need them
+@appLogo: true;
+
+@appLogo-height: 0px; // percentage - height / width * 100
+.navigator-slot-top .c8y-app-icon {
+  background-image: url('./img/logo.png');
+  height: 45px;
+  margin-top: 15px;
+  background-size: contain;
+}
+
+.header-bar .app-view .c8y-app-icon {
+  background-image: url(./img/hubicon.png);
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position-y: center;
+}
+
+.header-bar .app-view .c8y-app-icon .app-noicon {
+  visibility: hidden;
+}
+
+
+
+/* LOGOS */
+.favicon-webpack-loader { background: url('./img/hubicon.png') } // to be loaded by webpack
+@{logo-login} { background-image: url('./img/logo-main.svg') }
+@brand-logo-height: 48%; // percentage - height / width * 100
+@{logo-navigator} { background-image: url('./img/logo.png') }
+@navigator-platform-logo-height: 100px;
+
+@brand-color:                #00B4CD; // main color - replace with your brand color
+
+@brand-primary:               @brand-color;
+@brand-complementary:         #B9E0E3;
+@brand-primary-light:         #B9E0E3;
+
+// status colors
+@brand-success:               #6BB324;
+@brand-info:                  #5bc0de;
+@brand-warning:               #FECB00;
+@brand-danger:                #D90000;
+@danger:                      #D90000;
+@warning:                     #FDC000;
+@dark-warning:                #FF8000;
+@success:                     #5cb85c;
+
+// grays
+@gray-text:                   #383838;
+@gray-darker:                 #1D1D1B;
+@gray-dark:                   #212121;
+@gray-medium-dark:            #49595B;
+@gray-medium:                 #858585;
+@gray:                        #757575;
+@gray-light:                  #dcdcdc;
+@gray-lighter:                #f8f8f8;
+@gray-white:                  #fcfcfc;
+@text-muted:                  @gray;
+
+@body-background-color:       #f8f8f8; // page background color - always use a light background
+
+/* ====================================
+    HEADER BAR
+   ==================================== */
+
+   @headerColor:                 white;
+   @header-text-color:           @gray-medium-dark;
+   @header-text-color-hover:     @brand-primary;
+   @header-active-color:         darken(@gray-medium-dark, 15%);
+
+/* ====================================
+    NAVIGATOR
+   ==================================== */
+   @navColor:                   @gray-darker;
+   @navColorHeader:             transparent;
+   @navigator-title-color:      white;
+   @navigator-text-color:       white;
+   @navigator-separator-color:  fade(white, 5%);
+   @navigator-font-family:      @headings-font-family;
+   @navigator-font-size:        14px;
+   @navigator-active-color:     white;
+   @navigator-active-bg:        #B9E0E3;
+
+   /* ====================================
+    COMPONENTS
+   ==================================== */
+  @spinner-color:               @brand-primary;
+  @link-color:                  @brand-primary;
+  @link-hover-color:            darken(@link-color, 15%);
+  @input-focus-color:           #B9E0E3;
+  
+// when set adds a vertical gradient in the navigator background
+// @grad-top:                    "";
+// @grad-bottom:                 "";
+
+/* TYPOGRAPHY */
+// @font-family-sans-serif:      "Lato",Arial, Verdana, sans-serif;
+// @font-family-base:            @font-family-sans-serif;
+// @headings-font-family:        "Roboto",Arial, Verdana, sans-serif;
+
+/* BUTTONS */
+// @btn-border-radius-base:      2px;
+// @btn-border-radius-large:     @btn-border-radius-base;
+// @btn-border-radius-small:     @btn-border-radius-base;
+// @btn-shadow:                  none;
+
+/* COMPONENTS */
+// @spinner-color:               lighten(@brand-primary, 30%);
+// @link-color:                  #337ab7;
+// @link-hover-color:            darken(@link-color, 15%);
+// @input-focus-color:           #66afe9;
+
+// @body-background-pattern:     "";
+// @darker-header:               @gray-dark;
+// @appswitcher-background:      none;
+// @table-bg-hover:              fade(black, 1.5%);
+// @header-app-name:             @header-text-color;
+// @image-path:                  'img/';
+
+.ngx-json-viewer {
+    font-size: 1em;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    position: relative;
+  }
+  .ngx-json-viewer .segment {
+    padding: 2px;
+    margin: 1px 1px 1px 12px;
+  }
+  .ngx-json-viewer .segment .segment-main {
+    word-wrap: break-word;
+  }
+  .ngx-json-viewer .segment .segment-main .toggler {
+    position: absolute;
+    margin-left: -14px;
+    margin-top: 3px;
+    font-size: 0.8em;
+    line-height: 1.2em;
+    vertical-align: middle;
+    color: #787878;
+  }
+  .ngx-json-viewer .segment .segment-main .toggler::after {
+    display: inline-block;
+    content: "►";
+    transition: transform 0.1s ease-in;
+    position: absolute;
+    top: -2px;
+  }
+  .ngx-json-viewer .segment .segment-main .segment-separator {
+    color: #999;
+  }
+  .ngx-json-viewer .segment .segment-main .segment-value {
+    color: #000;
+  }
+  .ngx-json-viewer .segment .children {
+    margin-left: 12px;
+  }
+  .ngx-json-viewer .segment-type-string > .segment-main > .segment-value {
+    color: #FF6B6B;
+  }
+  .ngx-json-viewer .segment-type-number > .segment-main > .segment-value {
+    color: #009688;
+  }
+  .ngx-json-viewer .segment-type-boolean > .segment-main > .segment-value {
+    color: #b938a4;
+  }
+  .ngx-json-viewer .segment-type-date > .segment-main > .segment-value {
+    color: #05668D;
+  }
+  .ngx-json-viewer .segment-type-array > .segment-main > .segment-value {
+    color: #999;
+  }
+  .ngx-json-viewer .segment-type-object > .segment-main > .segment-value {
+    color: #999;
+  }
+  .ngx-json-viewer .segment-type-function > .segment-main > .segment-value {
+    color: #999;
+  }
+  .ngx-json-viewer .segment-type-null > .segment-main > .segment-value {
+    color: #fff;
+  }
+  .ngx-json-viewer .segment-type-undefined > .segment-main > .segment-value {
+    color: #fff;
+  }
+  .ngx-json-viewer .segment-type-null > .segment-main > .segment-value {
+    background-color: red;
+  }
+  .ngx-json-viewer .segment-type-undefined > .segment-main > .segment-key {
+    color: #999;
+  }
+  .ngx-json-viewer .segment-type-undefined > .segment-main > .segment-value {
+    background-color: #999;
+  }
+  .ngx-json-viewer .segment-type-object > .segment-main,
+  .ngx-json-viewer .segment-type-array > .segment-main {
+    white-space: nowrap;
+  }
+  .ngx-json-viewer .expanded > .toggler::after {
+    transform: rotate(90deg);
+  }
+  .ngx-json-viewer .expandable,
+  .ngx-json-viewer .expandable > .toggler {
+    cursor: pointer;
+  }

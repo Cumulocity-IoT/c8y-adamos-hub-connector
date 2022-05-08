@@ -1,0 +1,109 @@
+<c8y-title translate>{{ title | translate}}</c8y-title>
+
+<c8y-action-bar-item placement="left">
+    <ul class="nav navbar-nav  navbar-left">
+        <li class="btn-group">
+            <button type="button" class="btn btn-default ng-binding" (click)="changeFilter('DISCONNECTED')" [ngClass]="{active: filterActive('DISCONNECTED')}">
+            <i class="fa fa-unlink"></i> {{ 'Disconnected' | translate }}
+            </button>
+            <button type="button" class="btn btn-default ng-binding" (click)="changeFilter('CONNECTED')" [ngClass]="{active: filterActive('CONNECTED')}">
+            <i class="fa fa-link"></i> {{ 'Connected' | translate }}
+            </button>
+            <button type="button" class="btn btn-default active" (click)="changeFilter('ALL')" [ngClass]="{active: filterActive('ALL')}"> {{ 'All' | translate }}</button>
+        </li>
+    </ul>
+</c8y-action-bar-item>
+
+<c8y-action-bar-item placement="right">
+    <a class="btn btn-link" title="Import Hub-Device" (click)="onImportClick()">
+        <i class="fa fa-cloud-download"></i>
+        <span translate style="margin-left: 5px;">Import Hub Device</span>
+    </a>
+</c8y-action-bar-item>
+<c8y-action-bar-item placement="right">
+    <a class="btn btn-link" title="Refresh" (click)="onRefresh()">
+        <i c8y-icon="refresh" [ngClass]="{'fa-spin': (isLoading$ | async)  }" class="fa fw fa-refresh"></i>
+        <span translate style="margin-left: 5px;">Reload</span>
+    </a>
+</c8y-action-bar-item>
+
+<div *ngIf="!(isLoading$ | async)">
+<div *ngIf="devices === undefined || devices.length === 0">
+    <div class="c8y-empty-state text-left">
+        <h1 class="icon c8y-icon c8y-icon-device-management"></h1>
+        <p>No devices found.</p>
+    </div>
+</div>
+
+<table class="table table-striped" *ngIf="devices !== undefined && devices.length > 0">
+    <thead>
+        <tr>
+            <th translate>{{'Id' | translate}}</th>
+            <th translate>{{'Name' | translate}}</th>
+            <th translate class="text-right">{{'ADAMOS-Hub' | translate}}</th>
+        </tr>
+    </thead>
+    <tbody class="table-hover">
+        <tr *ngFor="let device of devices">
+            <td>{{device.id}} </td>
+            <td>
+                <a *ngIf="device.adamos_hub_connectorSettings !== undefined" [routerLink]="['/devices', device.id]">
+                        <span *ngIf="device.name !== undefined; else nodevicename">{{device.name}}</span>
+                        <span *ngIf="device.name === undefined"> - </span>
+                    </a>
+                <span *ngIf="device.adamos_hub_connectorSettings == undefined">
+                        <span *ngIf="device.name !== undefined">{{device.name}}</span>
+                        <span *ngIf="device.name === undefined"> - </span>
+                </span>
+            </td>        
+            <td class="text-right">
+                <!-- <button *ngIf="device.adamos_hub_connectorSettings !== undefined" class="btn-dot" (click)="resyncHub(device.id)" placement="left" tooltip="{{ 'Resync data from ADAMOS hub' | translate }}">
+                    <i [c8yIcon]="'refresh'"></i>
+                </button>                 -->
+                <button *ngIf="device.adamos_hub_connectorSettings !== undefined" class="btn-dot" (click)="removeHub(device.id)" placement="left" tooltip="{{ 'Delete binding' | translate }}">
+                    <i [c8yIcon]="'minus-circle'" class="text-danger"></i>
+                </button>                
+                <button *ngIf="device.adamos_hub_connectorSettings === undefined" class="btn-dot" (click)="addHub(device.id)" placement="left" tooltip="{{ 'Add binding' | translate }}">
+                    <i [c8yIcon]="'plus-circle'" class="text-success"></i>
+                </button>                  
+            </td>
+        </tr>
+    </tbody>
+</table>
+</div>
+
+<ng-template #dlgImport>
+    <div class="modal-header">
+        <h3>{{ 'Import ADAMOS-Hub-Device' | translate }}</h3>
+    </div>
+    <div class="modal-body">
+        <div class="form-group" translate> 
+            Please select a device that sould be imported from ADAMOS-Hub.
+        </div>
+        <div class="form-group" *ngIf="(isDialogDataLoading$ | async)"><i c8y-icon="spinner" class="fa fw fa-spinner fa-spin"></i> {{ 'Loading ADAMOS-Hub-data...' | translate }}</div>
+        <div class="form-group" *ngIf="(isDialogDataImporting$ | async)"><i c8y-icon="spinner" class="fa fw fa-spinner fa-spin"></i> {{ 'Importing ADAMOS-Hub-device...' | translate }}</div>
+        <span  *ngIf="!(isDialogDataLoading$ | async) && !(isDialogDataImporting$ | async)">
+            <div class="form-group" style="position: relative; z-index: 1000;" *ngIf="equipmentList.length > 0">
+                <label>Device</label>
+                <div class="c8y-select-wrapper">
+                    <select class="form-control" [(ngModel)]="selectedHubDeviceUuid">
+                        <option *ngFor="let equipment of equipmentList" value="{{ equipment.uuid }}">{{ equipment.customerIdentification.name }}</option>
+                    </select><span></span>
+                </div>
+            </div>
+            <div class="form-group" *ngIf="!(isDialogDataImporting$ | async) && equipmentList.length > 0">
+                <label class="c8y-switch">
+                    <input type="checkbox" id="cumulocityIsDevice" [(ngModel)]="selectedIsDevice">
+                    <span></span> {{'Handle as Cumulocity-Device' | translate}}
+                </label>
+            </div>
+            <div class="form-group" *ngIf="equipmentList.length == 0">
+                {{ 'No unimported devices could be found.' | translate }}
+            </div>
+        </span>
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-default" (click)="modalRef.hide()">{{ 'Cancel' | translate }}</button>
+        <button class="btn btn-primary" (click)="onImportDeviceClick()">{{ 'OK' | translate }}</button>
+    </div>
+</ng-template>

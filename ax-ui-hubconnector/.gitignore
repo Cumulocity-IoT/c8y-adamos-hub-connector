@@ -1,0 +1,7 @@
+#Ignore Node-Modules
+node_modules/
+
+#Ignore Distribution-Files
+dist/
+
+.vscode/

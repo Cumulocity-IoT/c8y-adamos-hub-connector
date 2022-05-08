@@ -1,0 +1,25 @@
+<section class="ngx-json-viewer">
+  <section
+    *ngFor="let segment of segments"
+    [ngClass]="['segment', 'segment-type-' + segment.type]">
+    <section
+      (click)="toggle(segment)"
+      [ngClass]="{
+        'segment-main': true,
+        'expandable': isExpandable(segment),
+        'expanded': segment.expanded
+      }">
+      <div *ngIf="isExpandable(segment)" class="toggler"></div>
+      <label><span class="segment-key">{{ segment.key | convertCamelCaseToSpace }}</span><span class="segment-separator">: </span></label>
+      <span *ngIf="!segment.expanded || !isExpandable(segment)">
+        <span>
+            <input class="form-control" *ngIf="segment.type != 'object'" [value]="segment.value" (change)="changeValue($event.target.value, segment)">
+            <!--{{ segment.parent + '.' + segment.key }}-->
+        </span>
+      </span>
+    </section>
+    <section *ngIf="segment.expanded && isExpandable(segment)" class="children">
+      <ngx-json-viewer [parent]="segment.key" [json]="segment.value" [expanded]="expanded" (valueOnChange)="changeValue($event.value, $event)"></ngx-json-viewer>
+    </section>
+  </section>
+</section>

@@ -1,0 +1,181 @@
+<c8y-title translate>{{ title | translate}}</c8y-title>
+
+<c8y-action-bar-item placement="right">
+    <a (click)="onClickAdd()" class="btn btn-link">
+        <i c8yIcon="plus-circle"></i> {{ 'Add new rule' | translate }}
+    </a>
+</c8y-action-bar-item>
+
+<c8y-action-bar-item placement="right">
+    <a class="btn btn-link" title="Refresh subscriptions page" (click)="onRefresh()">
+        <i c8y-icon="refresh" [ngClass]="{'fa-spin': (isLoading$ | async)  }" class="fa fw fa-refresh"></i>
+        <span translate style="margin-left: 5px;">Reload</span>
+    </a>
+</c8y-action-bar-item>
+
+<div *ngIf="!(isLoading$ | async)">
+    <div *ngIf="eventRules === undefined || eventRules.rules === undefined ||eventRules.rules.length === 0">
+        <div class="c8y-empty-state text-left">
+            <h1 class="icon c8y-icon c8y-icon-event-processing"></h1>
+            <p>No ruleset found.</p>
+        </div>
+    </div>
+
+    <table class="table table-striped" *ngIf="eventRules !== undefined && eventRules.rules !== undefined && eventRules.rules.length > 0">
+        <thead>
+            <tr>
+                <th translate>{{'Name' | translate}}</th>
+                <th translate>{{'ADAMOS-Hub Event' | translate}}</th>
+                <th translate>{{'ADAMOS Destination' | translate}}</th>
+                <th translate>{{'ADAMOS Processing' | translate}}</th>
+                <th translate style="width:2em;">{{'Move' | translate}}</th>
+                <th class="text-right" translate>{{'Action' | translate}}</th>
+            </tr>
+        </thead>
+        <tbody class="table-hover">
+        <tr *ngFor="let rule of eventRules.rules" [ngClass]="{ 'text-gray-light': !rule.enabled}">
+            <!-- <td>{{rule.id}} </td> -->
+            <td>
+                <a (click)="onClickEditRule(rule)">
+                    <span *ngIf="rule.name !== undefined; else nodevicename">{{rule.name}}</span>
+                    <span *ngIf="rule.name === undefined"> - </span>
+                </a>
+            </td>   
+            <td>{{rule.eventTrigger.eventCode}}</td>
+            <td>{{rule.eventProcessor.channel}}</td>
+            <!-- <td>{{rule.adamos.eventType}}</td> -->
+            <td>{{rule.eventProcessor.processingMode}}</td>
+            <td style="vertical-align:middle; color:black;"><i *ngIf="eventRules.rules.indexOf(rule) > 0" class="fa fa-arrow-up" (click)="onClickMoveUp(rule)" style="float:left;"></i><i *ngIf="eventRules.rules.length > 0 && eventRules.rules.indexOf(rule) < eventRules.rules.length - 1" class="fa fa-arrow-down" (click)="onClickMoveDown(rule)" style="float:right;"></i></td>
+            <td class="text-right" style="padding:0px;">
+                <div class="btn-group" dropdown>
+                    <button id="btnVerticalDrop" type="button" class="btn-dot dropdown-toggle c8y-dropdown" style="padding: 7px;" dropdownToggle aria-haspopup="true" aria-expanded="false"> <i c8y-icon="ellipsis-v" class="fa fw fa-ellipsis-v"></i> </button>
+                    <ul class="dropdown-menu"  *dropdownMenu aria-labelledby="btnVerticalDrop" style="right: 0px; left:auto;">
+                        <li><a (click)="onClickEditRule(rule)"><i class="fa fa-edit"></i> {{ 'Edit' | translate }}</a></li>
+                        <li><a (click)="onClickDuplicate(rule)"><i class="fa fa-clone"></i> {{ 'Duplicate' | translate }}</a></li>
+                        <li><a (click)="onClickDelete(rule)"><i class="fa fa-remove"></i> {{ 'Delete' | translate }}</a></li>
+                    </ul>
+                </div>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+<div style="float:right;">
+    <button *ngIf="changed" class="btn btn-primary" (click)="onSaveChanges()">Save changes</button> <button *ngIf="changed" class="btn" (click)="onRefresh()">Undo changes</button>
+</div>
+
+<ng-template #dlgRule>
+    <div class="modal-header">
+        <h3>{{ 'Rule' | translate }}</h3>
+    </div>
+    <div class="modal-body">
+        <div class="card-block">
+            <div class="row">
+                <div class="form-group">
+                    <label>Name</label>
+                    <input type="text" autofocus [(ngModel)]="selectedRule.name" placeholder="{{ 'Human readable rule name' | translate }}" class="form-control" />
+                </div>
+            </div>
+            <div class="row">
+                <div class="form-group">
+                    <label>ADAMOS-Hub Event</label>
+                    <input type="text" [(ngModel)]="selectedRule.eventTrigger.eventCode" placeholder="{{ 'ADAMOS-Hub Event Code or RegExp' | translate }}" class="form-control" />
+                </div>
+            </div>
+            <div class="row">
+                <div class="form-group">
+                    <label translate>ADAMOS-Hub ObjectType</label>
+                    <input type="text" [(ngModel)]="selectedRule.eventTrigger.referenceObjectType" placeholder="{{ 'ADAMOS-Hub Object Type or RegExp' | translate }}"class="form-control" />
+                </div>
+            </div>
+            <!-- <div class="row">
+                <div class="form-group">
+                    <label>ADAMOS-Type</label>
+                    <input type="text" [(ngModel)]="selectedRule.adamos.eventType" placeholder="{{ 'If not defined the ADAMOS-Hub Event Code will be forwarded' | translate }}" class="form-control" />
+                </div>
+            </div>
+            <div class="row" *ngIf="selectedRule.adamos.channel !== 'MEASUREMENTS'">
+                <div class="form-group">
+                    <label>ADAMOS-Text</label>
+                    <input type="text" [(ngModel)]="selectedRule.adamos.eventText"  placeholder="{{ 'If not defined the ADAMOS-Hub Event Code will be forwarded as text-property' | translate }}" class="form-control" />
+                </div>
+            </div>       
+            <div class="row">
+                <div class="form-group" style="position: relative; z-index: 1000;">
+                        <label>ADAMOS-Payload-Processing</label>
+                        <div class="c8y-select-wrapper">
+                            <select class="form-control" [(ngModel)]="selectedRule.payloadProcessingMode">
+                                    ALL, NONE, SELECTION, CUSTOM                                
+                                <option value="ALL">{{ 'All attributes' | translate }}</option>
+                                <option value="NONE">{{ 'No attributes' | translate }}</option>
+                                <option value="SELECTION">{{ 'Selected attributes' | translate }}</option>
+                                <option value="CUSTOM">{{ 'Custom JSON' | translate }}</option>
+                            </select><span></span>
+                        </div>
+                </div>            
+            </div>  -->
+            <div class="row">
+                <div class="form-group" style="position: relative; z-index: 1000;">
+                        <label translate>ADAMOS-Channel</label>
+                        <div class="c8y-select-wrapper">
+                            <select class="form-control" [(ngModel)]="selectedRule.eventProcessor.channel">
+                                <option value="EVENTS">{{ 'Events' | translate }}</option>
+                                <option value="MEASUREMENTS">{{ 'Measurements' | translate }}</option>
+                                <option value="ALARMS">{{ 'Alarms' | translate }}</option>
+                                <!-- <option value="COMMANDS">{{ 'Commands' | translate }}</option> -->
+                            </select><span></span>
+                        </div>
+                </div>            
+            </div>
+            <!-- <div class="row" *ngIf="selectedRule.adamos.channel === 'ALARMS'">
+                <div class="form-group" style="position: relative; z-index: 1000;">
+                        <label>ADAMOS-Alarm-Severity</label>
+                        <div class="c8y-select-wrapper">
+                            <select class="form-control" [(ngModel)]="selectedRule.adamos.severity">
+                                <option value="UNDEFINED">{{ 'Undefined' | translate }}</option>
+                                <option value="CRITICAL">{{ 'Criitcal' | translate }}</option>
+                                <option value="MAJOR">{{ 'Major' | translate }}</option>
+                                <option value="MINOR">{{ 'Minor' | translate }}</option>
+                                <option value="WARNING">{{ 'Warning' | translate }}</option>
+                            </select><span></span>
+                        </div>
+                </div>            
+            </div>             -->
+            <div class="row">
+                    <div class="form-group" style="position: relative; z-index: 1000;">
+                            <label translate>ADAMOS-Processing</label>
+                            <div class="c8y-select-wrapper">
+                                <select class="form-control" [(ngModel)]="selectedRule.eventProcessor.processingMode">
+                                    <option value="PERSISTENT">{{ 'Persistent' | translate }}</option>
+                                    <option value="TRANSIENT">{{ 'Transient' | translate }}</option>
+                                    <option value="QUIESCENT">{{ 'Quiescent' | translate }}</option>
+                                    <option value="CEP">{{ 'CEP' | translate }}</option>
+                                </select><span></span>
+                            </div>
+                    </div>            
+                </div>
+            <div class="row">
+                <div class="form-group" style="position: relative; z-index: 1000;">
+                        <label translate>Custom-JSON</label>
+                        <textarea class="form-control" [(ngModel)]='selectedRule.output'></textarea>
+                </div>            
+            </div>
+            <div class="row">
+                <div class="form-group">
+                    <label class="c8y-switch">
+                        <input type="checkbox" id="syncToHub"
+                            [(ngModel)]='selectedRule.enabled'>
+                        <span></span> {{'Rule active' | translate}}
+                    </label>
+                </div>
+            </div>
+        </div>
+        <!-- <div class="form-group">
+            {{ selectedRule | json }}
+        </div> -->
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-default" (click)="onEditCancelClick()">{{ 'Cancel' | translate }}</button>
+        <button class="btn btn-primary" (click)="onEditOKClick()" [disabled]="!mandatoryFieldsFilled()">{{ 'OK' | translate }}</button>
+    </div>
+</ng-template>

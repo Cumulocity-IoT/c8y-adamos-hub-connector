@@ -1,0 +1,149 @@
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Project-Id-Version: \n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Language-Team: \n"
+"X-Generator: Poedit 1.8.9\n"
+"Last-Translator: \n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Language: de\n"
+
+msgid "Import Hub-Device"
+msgstr "Hub-Gerät importieren"
+
+msgid "Import ADAMOS-Hub-Device"
+msgstr "ADAMOS-Hub-Gerät importieren"
+
+msgid "Please select a device that sould be imported from ADAMOS-Hub."
+msgstr "Bitte wählen Sie ein Gerät, welches aus dem ADAMOS-Hub importiert werden soll."
+
+msgid "Add binding"
+msgstr "Verknüpfung hinzufügen"
+
+msgid "Delete binding"
+msgstr "Verknüpfung löschen"
+
+msgid "Hub Settings"
+msgstr "Hub Einstellungen"
+
+msgid "Last usage"
+msgstr "Letzte Verwendung"
+
+msgid "Initial sync"
+msgstr "Initiale Synchronisierung"
+
+msgid "Synchronisation"
+msgstr "Synchronisierung"
+
+msgid "Sync to ADAMOS-Hub"
+msgstr "Synchronisiere zum ADAMOS-Hub"
+
+msgid "Sync from ADAMOS-Hub"
+msgstr "Synchronisiere vom ADAMOS-Hub"
+
+msgid "Last sync"
+msgstr "Letzte Synchronisierung"
+
+msgid "Mapping"
+msgstr "Mapping"
+
+msgid "Hierarchy"
+msgstr "Hierarchie"
+
+msgid "No custom mapping defined."
+msgstr "Keine angepassten Mappings definiert."
+
+msgid "Devices"
+msgstr "Geräte"
+
+msgid "Disconnected"
+msgstr "Nicht verbunden"
+
+msgid "Disconnected Devices"
+msgstr "Nicht verbundene Geräte"
+
+msgid "Connected Devices"
+msgstr "Verbundene Geräte"
+
+msgid "All Devices"
+msgstr "Alle Geräte"
+
+msgid "Global settings"
+msgstr "Globale Einstellungen"
+
+msgid "Basic Data"
+msgstr "Basisdaten"
+
+msgid "Create new assets in Hub automatically"
+msgstr "Automatische Erstellung neuer Assets in Hub"
+
+msgid "No HubSettings found."
+msgstr "Keine Hub-Einstellungen gefunden."
+
+msgid "Loading global settings..."
+msgstr "Lade globale Einstellungen..."
+
+msgid "Loading ADAMOS-Hub-data..."
+msgstr "Lade ADAMOS-Hub-Daten..."
+
+msgid "Handle as Cumulocity-Device"
+msgstr "Als Cumulocity-Gerät behandeln"
+
+msgid "Set Device-Flag"
+msgstr "Geräte-Flag setzen"
+
+msgid "Device-Flag active"
+msgstr "Geräte-Flag aktiv"
+
+msgid "Resync data from ADAMOS Hub"
+msgstr "Daten von ADAMOS Hub synchronisierennpm"
+
+msgid "No unimported devices could be found."
+msgstr "Es konnten keine nicht-importierten Geräte gefunden werden."
+
+msgid "Importing ADAMOS-Hub-device..."
+msgstr "Importiere ADAMOS-Hub-Gerät..."
+
+msgid "Comment"
+msgstr "Kommentar"
+
+msgid "Event Rules"
+msgstr "Event Regeln"
+
+msgid "Events from Hub"
+msgstr "Events vom Hub"
+
+msgid "Events from ADAMOS-Hub"
+msgstr "Events vom ADAMOS-Hub"
+
+msgid "ADAMOS Destination"
+msgstr "ADAMOS Ziel"
+
+msgid "ADAMOS-Processing"
+msgstr "ADAMOS-Verarbeitung"
+
+msgid "ADAMOS-Channel"
+msgstr "ADAMOS-Kanal"
+
+msgid "Add new rule"
+msgstr "Neue Regel erstellen"
+
+msgid "Custom-JSON"
+msgstr "Benutzerdefiniertes JSON"
+
+msgid "Rule active"
+msgstr "Regel aktiv"
+
+msgid "Human readable rule name"
+msgstr "Menschenlesbarer Regelname"
+
+msgid "ADAMOS-Hub Event Code or RegExp"
+msgstr "ADAMOS-Hub Event Code oder regulärer Ausdruck"
+
+msgid "ADAMOS-Hub Object Type or RegExp"
+msgstr "ADAMOS-Hub Objekt Typ oder regulärer Ausdruck"
+
+msgid "ADAMOS-Hub ObjectType"
+msgstr "ADAMOS-Hub Objekt Typ"

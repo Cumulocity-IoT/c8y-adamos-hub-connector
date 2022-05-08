@@ -1,0 +1,58 @@
+<div *ngIf="(isLoading$ | async)">
+    <c8y-title>Loading mapping...</c8y-title> 
+</div>
+
+<div *ngIf="!(isLoading$ | async)">
+    <c8y-title *ngIf="mapping !== undefined">{{mapping.id}} {{mapping.name}}</c8y-title> 
+    <c8y-title *ngIf="mapping === undefined">Mapping unknown</c8y-title> 
+
+    <div *ngIf="mapping === undefined || mapping.length === 0; else showmapping" class="text-warning">
+        {{informationText | translate}}
+    </div>
+
+    <ng-template #showmapping>
+    <div class="row">
+        <div class="col-md-7 col-sm-12">
+            <div *ngIf="mapping.data !== undefined" class="card shadow1">
+                <div class="card-header separator">
+                    <h4 class="card-title">{{'Mapping Settings' | translate}}</h4>
+                </div>
+                <div class="card-block">
+                    <fieldset class="row">
+                        <div class="col-sm-3">
+                            <h4>{{'Mapping' | translate}}</h4>
+                        </div>
+                        <div class="col-sm-9">
+                            <div class="form-group">
+                                <label translate>Name</label>
+                                <input class="form-control" [(ngModel)]="mapping.name">
+                            </div>
+                            <div class="form-group">
+                                    <label translate>Model version</label>
+                                    <input class="form-control" [ngModel]="mapping.data.version" disabled>
+                                </div>
+                            <div class="form-group">
+                                <ngx-json-viewer [json]="mapping.data.model" [parent]="model" (valueOnChange)="onModelChanged($event)"></ngx-json-viewer>
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+            <div *ngIf="mapping.data === undefined">
+                {{ 'No mapping found.' | translate }}
+            </div>
+        </div>
+    </div>
+    <div class="page-footer text-center" *ngIf="!(isLoading$ | async)">
+        <div class="btn-save-wrapper animated slideInUp changed" ng-class="{'slideInUp changed': vm.changedCss()}">
+            <button class="btn" [routerLink]="['/mappings']">{{'Cancel' | translate}}</button>
+            <button type="submit" class="btn btn-primary" (click)="saveMapping()">{{'Save' | translate}}</button>
+        </div>
+    </div>
+    </ng-template> 
+</div>
+<!--
+<svg width="100" height="100">
+    <circle cx="50" cy="50" r="40" stroke="green" stroke-width="4" fill="yellow" />
+</svg>
+-->
