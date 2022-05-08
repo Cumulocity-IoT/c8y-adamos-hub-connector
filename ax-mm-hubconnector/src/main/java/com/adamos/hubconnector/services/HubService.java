@@ -235,7 +235,7 @@ public class HubService {
 	
 	private EquipmentDTO updateEquipment(EquipmentDTO device) {
 		URI uriPut = UriComponentsBuilder.fromUriString(appProperties.getAdamosMdmServiceEndpoint())
-										 .path("asset/machines/" + device.getUuid())
+										 .path("assets/machines/" + device.getUuid())
 										 .build().toUri();
 		
 		return restToHub(uriPut, HttpMethod.PUT, device, EquipmentDTO.class);
@@ -299,7 +299,7 @@ public class HubService {
 		ci.setName(name);
 		device.setCustomerIdentification(ci);
 		
-		URI uriService = UriComponentsBuilder.fromUriString(appProperties.getAdamosMdmServiceEndpoint()).path("asset/machines").build().toUri();
+		URI uriService = UriComponentsBuilder.fromUriString(appProperties.getAdamosMdmServiceEndpoint()).path("assets/machines").build().toUri();
 		device = restToHub(uriService, HttpMethod.POST, device, EquipmentDTO.class);
 		
 		setIdentity(obj.getId().getLong(), CustomProperties.Machine.IDENTITY_TYPE, device.getUuid());
@@ -404,7 +404,7 @@ public class HubService {
 	
 	public boolean deleteDeviceInHub(String uuid) {
 			URI uriDeleteDevice = UriComponentsBuilder.fromUriString(appProperties.getAdamosMdmServiceEndpoint())
-					 .path("asset/machines/" + uuid)
+					 .path("assets/machines/" + uuid)
 					 .build().toUri();
 			
 			return deleteInHub(uriDeleteDevice);
@@ -628,7 +628,7 @@ public class HubService {
 	private void setTumbnailByOemId(ManagedObjectRepresentation target, String oemId) {
 		try {
 			if (!Strings.isNullOrEmpty(oemId)) {
-				List<ImageDTO> images = getThumbnailsByOemId(oemId);
+				List<ImageDTO> images = getThumbnails(oemId);
 				if (images != null && !images.isEmpty()) {
 					HubConnectorThumbnail image = new HubConnectorThumbnail();
 					image.setCaption(images.get(0).getCaption());
@@ -662,7 +662,7 @@ public class HubService {
 	}
 	
 	public List<EquipmentDTO> getMachineTools() {
-		return getListOfPages("asset/machines", new TypeReference<List<EquipmentDTO>>() { });
+		return getListOfPages("assets/machines", new TypeReference<List<EquipmentDTO>>() { });
 	}
 	
 	public List<TreeDTO> getTrees() {
@@ -670,19 +670,19 @@ public class HubService {
 	}
 	
 	public EquipmentDTO getMachineTool(String uuid) {
-		return getHubResponse(appProperties.getAdamosMdmServiceEndpoint(), authTokenService.getToken().getAccessToken(), "asset/machines/" + uuid, new LinkedMultiValueMap<>(), new ParameterizedTypeReference<EquipmentDTO>() {});
+		return getHubResponse(appProperties.getAdamosMdmServiceEndpoint(), authTokenService.getToken().getAccessToken(), "assets/machines/" + uuid, new LinkedMultiValueMap<>(), new ParameterizedTypeReference<EquipmentDTO>() {});
 	}
 
 	public SiteDTO getPlant(String uuid) {
-		return getHubResponse(appProperties.getAdamosMdmServiceEndpoint(), authTokenService.getToken().getAccessToken(), "asset/sites/" + uuid, new LinkedMultiValueMap<>(), new ParameterizedTypeReference<SiteDTO>() {});
+		return getHubResponse(appProperties.getAdamosMdmServiceEndpoint(), authTokenService.getToken().getAccessToken(), "assets/sites/" + uuid, new LinkedMultiValueMap<>(), new ParameterizedTypeReference<SiteDTO>() {});
 	}
 
 	public AreaDTO getArea(String uuid) {
-		return getHubResponse(appProperties.getAdamosMdmServiceEndpoint(), authTokenService.getToken().getAccessToken(), "asset/areas/" + uuid, new LinkedMultiValueMap<>(), new ParameterizedTypeReference<AreaDTO>() {});
+		return getHubResponse(appProperties.getAdamosMdmServiceEndpoint(), authTokenService.getToken().getAccessToken(), "assets/areas/" + uuid, new LinkedMultiValueMap<>(), new ParameterizedTypeReference<AreaDTO>() {});
 	}
 
 	public ProductionLineDTO getProductionLine(String uuid) {
-		return getHubResponse(appProperties.getAdamosMdmServiceEndpoint(), authTokenService.getToken().getAccessToken(), "asset/workCenters/productionLines/" + uuid, new LinkedMultiValueMap<>(), new ParameterizedTypeReference<ProductionLineDTO>() {});
+		return getHubResponse(appProperties.getAdamosMdmServiceEndpoint(), authTokenService.getToken().getAccessToken(), "assets/workCenters/productionLines/" + uuid, new LinkedMultiValueMap<>(), new ParameterizedTypeReference<ProductionLineDTO>() {});
 	}
 
 	public <T> RestResponsePage<T> getHubResponsePage(String path, int page, int size) {
@@ -710,34 +710,34 @@ public class HubService {
 	}
 
 	public List<SiteDTO> getPlants() {
-		return getListOfPages("asset/sites", new TypeReference<List<SiteDTO>>() { });
+		return getListOfPages("assets/sites", new TypeReference<List<SiteDTO>>() { });
 	}
 
 	public List<AreaDTO> getAreas() {
-		return getListOfPages("asset/areas", new TypeReference<List<AreaDTO>>() { });
+		return getListOfPages("assets/areas", new TypeReference<List<AreaDTO>>() { });
 	}
 
 	public List<ProductionLineDTO> getProductionLines() {
-		return getListOfPages("asset/workCenters/productionLines", new TypeReference<List<ProductionLineDTO>>() { });
+		return getListOfPages("assets/workCenters/productionLines", new TypeReference<List<ProductionLineDTO>>() { });
 	}
 	
 	public EquipmentDTO updateMachineTool(EquipmentDTO data) {
 		URI uriAddManufacturer = UriComponentsBuilder.fromUriString(appProperties.getAdamosMdmServiceEndpoint())
-				 .path("asset/machines/" + data.getUuid())
+				 .path("assets/machines/" + data.getUuid())
 				 .build().toUri();
 
 		return restToHub(uriAddManufacturer, HttpMethod.PUT, data, EquipmentDTO.class);
 	}
 	
-	public List<ImageDTO> getThumbnailsByOemId(String oemId) {
+	public List<ImageDTO> getThumbnails(String oemId) {
 		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
 		params.add("imageSize", "THUMBNAIL");
 //		params.add("lang", "en");		
-		return getHubResponse(appProperties.getAdamosCatalogServiceEndpoint(), authTokenService.getToken().getAccessToken(), "catalog/equipmentOem/" + oemId + "/productImages", params, new ParameterizedTypeReference<List<ImageDTO>>() {}); 
+		return getHubResponse(appProperties.getAdamosCatalogServiceEndpoint(), authTokenService.getToken().getAccessToken(), "catalogEntries/" + oemId + "/Iimages", params, new ParameterizedTypeReference<List<ImageDTO>>() {}); 
 	}
 	
 	public List<ManufacturerDTO> getManufacturerIdentities() {
-		return getListOfPages("asset/manufacturers", new TypeReference<List<ManufacturerDTO>>() {});
+		return getListOfPages("assets/manufacturers", new TypeReference<List<ManufacturerDTO>>() {});
 	}
 	
 }
