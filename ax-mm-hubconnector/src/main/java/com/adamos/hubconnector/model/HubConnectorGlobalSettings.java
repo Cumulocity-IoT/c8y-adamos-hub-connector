@@ -35,8 +35,8 @@ public class HubConnectorGlobalSettings {
 		this.amqpCredentials = value;
 	}
 	
-	@JsonProperty("oAuth2Credentials")
-	@JSONProperty("oAuth2Credentials")
+	@JsonProperty("amqpCredentials")
+	@JSONProperty("amqpCredentials")
 	public OAuth2Credentials getAmqpCredentials() {
 		return this.amqpCredentials;
 	}

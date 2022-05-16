@@ -53,6 +53,9 @@ public class HubConnectorService {
 				case "oAuth2Credentials":
 					settings.setOAuth2Credentials(mapper.readValue(o.getValue(), OAuth2Credentials.class));
 					break;
+				case "amqpCredentials":
+					settings.setAmqpCredentials(mapper.readValue(o.getValue(), OAuth2Credentials.class));
+					break;
 				case "defaultSyncConfiguration":
 					settings.setDefaultSyncConfiguration(mapper.readValue(o.getValue(), GlobalSyncConfiguration.class));			
 					break;
@@ -80,12 +83,12 @@ public class HubConnectorService {
 				globalSettings.setVersion(oldSettings.getVersion());
 			}
 			
-			if (oldSettings.getOAuth2Credentials() != null) { 
-				if (oldSettings.getOAuth2Credentials().getClient_secret() == null) oldSettings.getOAuth2Credentials().setClient_secret("");
-				if (oldSettings.getOAuth2Credentials().getClient_id() == null) oldSettings.getOAuth2Credentials().setClient_id("");
+			if (oldSettings.getAmqpCredentials() != null) { 
+				if (oldSettings.getAmqpCredentials().getClient_secret() == null) oldSettings.getAmqpCredentials().setClient_secret("");
+				if (oldSettings.getAmqpCredentials().getClient_id() == null) oldSettings.getAmqpCredentials().setClient_id("");
 				
-				if (!oldSettings.getOAuth2Credentials().getClient_secret().equals(globalSettings.getOAuth2Credentials().getClient_secret()) ||
-				    !oldSettings.getOAuth2Credentials().getClient_id().equals(globalSettings.getOAuth2Credentials().getClient_id())) {
+				if (!oldSettings.getAmqpCredentials().getClient_secret().equals(globalSettings.getAmqpCredentials().getClient_secret()) ||
+				    !oldSettings.getAmqpCredentials().getClient_id().equals(globalSettings.getAmqpCredentials().getClient_id())) {
 						IsCredentialUpdate = true;
 				}
 			}
@@ -103,6 +106,13 @@ public class HubConnectorService {
 			optionOAuth2Credentials.setValue(mapper.writeValueAsString(globalSettings.getOAuth2Credentials()));
 			options.add(optionOAuth2Credentials);
 
+			OptionRepresentation optionAmqpCredentials = new OptionRepresentation();
+			optionAmqpCredentials.setCategory(CustomProperties.HUB_GLOBAL_SETTINGS);
+			optionAmqpCredentials.setKey("credentials.amqpCredentials");
+			optionAmqpCredentials.setValue(mapper.writeValueAsString(globalSettings.getAmqpCredentials()));
+			options.add(optionAmqpCredentials);
+
+			
 			OptionRepresentation optionDefaultSyncConfiguration = new OptionRepresentation();
 			optionDefaultSyncConfiguration.setCategory(CustomProperties.HUB_GLOBAL_SETTINGS);
 			optionDefaultSyncConfiguration.setKey("defaultSyncConfiguration");
