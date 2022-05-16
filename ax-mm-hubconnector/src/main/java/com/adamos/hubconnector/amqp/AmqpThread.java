@@ -78,12 +78,10 @@ public class AmqpThread implements Runnable, HealthIndicator {
             connectionFactory.setUsername(username);
             connectionFactory.setPassword(password);
             connectionFactory.setRequestedHeartBeat(60);
-            
-            if (LOGGER.isDebugEnabled()) {
-            	LOGGER.debug("Host: " + connectionFactory.getHost());
-            	LOGGER.debug("User: " + connectionFactory.getUsername());
-            	LOGGER.debug("Password: " + password);
-            }
+
+        	LOGGER.debug("Host: " + connectionFactory.getHost());
+        	LOGGER.debug("User: " + connectionFactory.getUsername());
+        	LOGGER.debug("Password: " + password);
 
         	countConnectionRetry = 0;
        		int multiplier = 1;
