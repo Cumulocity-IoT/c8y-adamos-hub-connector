@@ -1,6 +1,7 @@
 package com.adamos.hubconnector.services;
 
 import java.io.IOException;
+import java.net.URI;
 import java.time.Instant;
 import java.util.Date;
 
@@ -8,22 +9,31 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.adamos.hubconnector.CustomProperties;
+import com.adamos.hubconnector.HubProperties;
+import com.adamos.hubconnector.model.HubConnectorResponse;
 import com.adamos.hubconnector.model.events.AdamosEventData;
 import com.adamos.hubconnector.model.events.AdamosEventProcessor;
 import com.adamos.hubconnector.model.events.EventDirection;
 import com.adamos.hubconnector.model.events.EventRule;
 import com.adamos.hubconnector.model.events.EventRules;
+import com.adamos.hubconnector.model.hub.EquipmentDTO;
 import com.cumulocity.microservice.subscription.service.MicroserviceSubscriptionsService;
 import com.cumulocity.model.idtype.GId;
 import com.cumulocity.rest.representation.event.EventRepresentation;
 import com.cumulocity.rest.representation.inventory.ManagedObjectRepresentation;
 import com.cumulocity.sdk.client.event.EventApi;
 import com.cumulocity.sdk.client.event.EventFilter;
-import com.cumulocity.sdk.client.event.PagedEventCollectionRepresentation;
 import com.cumulocity.sdk.client.inventory.InventoryApi;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -36,6 +46,9 @@ import com.jayway.jsonpath.DocumentContext;
 public class EventRulesService {
 	private static final ObjectMapper mapper = new ObjectMapper().registerModule(new JodaModule());
 	private static final Logger appLogger = LoggerFactory.getLogger(EventRulesService.class);
+
+	@Autowired
+	private HubProperties appProperties;
 
 	@Autowired
 	private InventoryApi inventoryApi;
@@ -52,9 +65,18 @@ public class EventRulesService {
     @Autowired
     private MicroserviceSubscriptionsService service;
 	
+	@Autowired
+	private AuthTokenService authTokenService;
+    
 	@Value("${C8Y.tenant}")
     private String tenant;	
-	 	
+
+	private RestTemplate restTemplate;
+	
+	public EventRulesService(RestTemplateBuilder restTemplateBuilder) {
+		restTemplate = restTemplateBuilder.build();
+	}
+	
 	/**
 	 * Inbound event processing (Hub -> C8Y)
 	 * 
@@ -90,11 +112,28 @@ public class EventRulesService {
 			Iterable<EventRepresentation> events = eventApi.getEventsByFilter(new EventFilter().byType("AdamosHubEvent").byFromDate(Date.from(Instant.now().minusSeconds(60)))).get(2000).allPages();
 			for (EventRepresentation e : events) {
 				GId source = e.getSource().getId();
-				AdamosEventData data = e.get(AdamosEventData.class);
-				appLogger.info(e.getAttrs().toString());
-				appLogger.info("Processing event for device " + source + ": " + data);
+				ManagedObjectRepresentation mo = inventoryApi.get(source);
+				if (mo.hasProperty(CustomProperties.HUB_DATA)) {
+					EquipmentDTO hubData = new HubConnectorResponse<EquipmentDTO>(mo, CustomProperties.HUB_DATA, EquipmentDTO.class).getData();
+					AdamosEventData eventData = e.get(AdamosEventData.class);
+					eventData.setTimestampCreated(e.getDateTime());
+					eventData.setReferenceObjectType("adamos:masterdata:type:machine:1");
+					eventData.setReferenceObjectId(hubData.getUuid());
+					URI uriService = UriComponentsBuilder.fromUriString(appProperties.getAdamosEventServiceEndpoint()).path("event").build().toUri();
+					appLogger.info("Posting to " + uriService + ": " + eventData);
+					restToHub(uriService, HttpMethod.POST, eventData, AdamosEventData.class);
+				} else {
+					appLogger.warn("Cannot send event to Adamos Hub. Device " + source + " is not synchronized to Adamos Hub");
+				}
 			}
 		});
+	}
+	
+	private <T,R> T restToHub(URI uri, HttpMethod method, R obj, Class<T> clazz) throws RestClientException {
+		restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
+		HttpEntity<R> request = new HttpEntity<R>(obj, authTokenService.getHeaderBearerToken(org.springframework.http.MediaType.APPLICATION_JSON));
+		T response =  restTemplate.exchange(uri, method, request, clazz).getBody();
+		return response;
 	}
 	
 	private String getTypeByDirection(EventDirection direction) {

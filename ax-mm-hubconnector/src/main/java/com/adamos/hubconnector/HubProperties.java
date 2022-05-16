@@ -42,6 +42,14 @@ public class HubProperties {
 	public String getAdamosCatalogServiceEndpoint() {
 		return this.getHttpSchema() + replaceHost(this.adamosCatalogServiceEndpoint) + "/";
 	}	
+
+	private String adamosEventServiceEndpoint;
+	public void setAdamosEventServiceEndpoint(String value) {
+		this.adamosEventServiceEndpoint = value;
+	}
+	public String getAdamosEventServiceEndpoint() {
+		return this.getHttpSchema() + replaceHost(this.adamosEventServiceEndpoint) + "/";
+	}
 	
 	private String adamosAmqpEndpoint;
 	public void setAdamosAmqpEndpoint(String value) {
