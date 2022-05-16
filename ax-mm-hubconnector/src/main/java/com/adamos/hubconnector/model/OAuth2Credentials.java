@@ -22,4 +22,8 @@ public class OAuth2Credentials implements Cloneable {
 		copy.setGrant_type(this.grant_type);
 		return copy;
 	}
+	
+	public boolean initialized() {
+		return client_id != null && client_secret != null && grant_type != null;
+	}
 }

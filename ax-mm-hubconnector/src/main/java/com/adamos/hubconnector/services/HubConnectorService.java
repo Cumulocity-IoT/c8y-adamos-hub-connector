@@ -44,6 +44,9 @@ public class HubConnectorService {
 	public HubConnectorGlobalSettings getGlobalSettings() {
 		HubConnectorGlobalSettings settings = new HubConnectorGlobalSettings();
 		List<OptionRepresentation> options = cumulocityService.getTenantOptions();
+		if(options.isEmpty()) {
+			return null;
+		}
 		for (OptionRepresentation o : options) {
 			try {
 				switch(o.getKey()) {
@@ -112,7 +115,6 @@ public class HubConnectorService {
 			optionVersion.setValue(globalSettings.getVersion());
 			options.add(optionVersion);
 
-			
 			cumulocityService.updateTenantOptions(options);		
 			
 		} catch (JsonProcessingException jpe) {

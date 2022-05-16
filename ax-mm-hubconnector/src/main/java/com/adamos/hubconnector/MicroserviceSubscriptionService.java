@@ -42,11 +42,13 @@ public class MicroserviceSubscriptionService {
 	   
 	    if (hubConnectorService.getGlobalSettings() == null) {
 	    	hubConnectorService.initGlobalSettings();
-	    	tokenService.getToken();
+		    eventService.initMappingRules();
+	    }  else {
+	    	if(tokenService.getToken() != null) {
+				migrationService.checkMigrations();
+				amqpService.restartAmqpSubscription();		    		
+	    	}
 	    }
-	    eventService.initMappingRules();
-		migrationService.checkMigrations();
-		amqpService.restartAmqpSubscription();
 	}
 		
 }

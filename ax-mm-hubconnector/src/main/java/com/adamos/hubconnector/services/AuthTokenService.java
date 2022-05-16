@@ -126,10 +126,14 @@ public class AuthTokenService {
     	// get globalSettings - this object is always created with the first subscription of the service!
 		HubConnectorGlobalSettings globalSettings = hubConnectorService.getGlobalSettings();
 		
+		if(!globalSettings.getOAuth2Credentials().initialized()) {
+			return null;
+		}
+		
 		String secret = globalSettings.getOAuth2Credentials().getClient_secret();
 		OAuth2Credentials body = globalSettings.getOAuth2Credentials().clone();
 		body.setClient_secret(secret);
-		
+				
 		if (this.getCurrentToken() == null || this.getCurrentToken().getAccessToken() == null) {
 		    OAuth2Token token = getNewToken(body);
 		    setCurrentToken(token);
