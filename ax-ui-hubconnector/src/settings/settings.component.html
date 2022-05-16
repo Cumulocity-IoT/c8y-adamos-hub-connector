@@ -1,5 +1,5 @@
 <c8y-title>{{ 'Settings' | translate }}</c8y-title>
-<div *ngIf="isLoading$ | async"><i c8y-icon="spinner" class="fa fw fa-spinner fa-spin"></i> {{ 'Loading global settings...' | translate }}</div>
+<div *ngIf="isLoading$ | async"><i c8y-icon="spinner" class="fw dlt-c8y-icon-spinner"></i> {{ 'Loading global settings...' | translate }}</div>
 
 <div class="row" *ngIf="!(isLoading$ | async)">
     <div class="col-md-7 col-sm-12">
@@ -17,13 +17,13 @@
                             <div class="col-sm-2">
                             </div>
                             <div class="col-sm-3 bottom-m-md">
-                                ADAMOS Core <i class="fa fa-long-arrow-right"></i> Hub
+                                ADAMOS Core <i class="dlt-c8y-icon-arrow-right"></i> Hub
                             </div>
                             <div class="col-sm-3 bottom-m-md">
-                                Hub <i class="fa fa-long-arrow-right"></i> ADAMOS Core
+                                Hub <i class="dlt-c8y-icon-arrow-right"></i> ADAMOS Core
                             </div>
                             <div class="col-sm-3 bottom-m-md" style="text-align: center;">
-                                {{ 'Set Device-Flag' | translate }}
+                                {{ 'Set Device Flag' | translate }}
                             </div>
                         </div>
                         <div class="row">
@@ -83,45 +83,6 @@
                                     </label>
                             </div>
                         </div>
-                        <!-- <div class="form-group">
-                            <label class="c8y-switch">
-                                <input type="checkbox" id="syncNewAssetsAutomatically" [(ngModel)]='globalSettings.addNewAssets'>
-                                <span></span> {{'Create new assets in Hub automatically' | translate}}
-                            </label>
-                        </div>
-                        <ul style="list-style-type: none;">
-                            <li>
-                                <div class="form-group">
-                                    <label class="c8y-switch">
-                                        <input type="checkbox" id="syncToHubDefault" [(ngModel)]='globalSettings.defaultSyncConfiguration.syncToHub'>
-                                        <span></span> {{'Sync to Hub' | translate}} (default)
-                                    </label>
-                                </div>
-                            </li>
-                            <li>
-                                <div class="form-group">
-                                    <label class="c8y-switch">
-                                        <input type="checkbox" id="syncFromHubDefault" [(ngModel)]='globalSettings.defaultSyncConfiguration.syncFromHub'>
-                                        <span></span> {{'Sync from Hub' | translate}} (default)
-                                    </label>
-                                </div>
-                            </li> -->
-                        <!-- <li>
-                                <div class="form-group">
-                                    <label>Default Mapping</label>
-                                    <div class="btn-group" dropdown >
-                                        <button id="btnVerticalDrop" type="button" class="btn-dot dropdown-toggle c8y-dropdown" style="padding: 7px;" dropdownToggle aria-haspopup="true" aria-expanded="false"> 
-                                            {{ selectedMapping.id + " " + selectedMapping.name }}  <span class="caret"></span>
-                                        </button>
-                                        <ul class="dropdown-menu"  *dropdownMenu aria-labelledby="btnVerticalDrop" style="max-height:200px; overflow-y:scroll;">
-                                            <li *ngFor="let mapping of mappings">
-                                                <a (click)="onMappingClick(mapping)">{{ mapping.id + " " + mapping.name }}</a>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                </div>    
-                            </li> -->
-                        <!-- </ul>                    -->
                     </div>
                 </fieldset>
                 <fieldset class="row">
