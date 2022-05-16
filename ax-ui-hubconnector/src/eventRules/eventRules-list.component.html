@@ -25,7 +25,7 @@
         <thead>
             <tr>
                 <th translate>{{'Name' | translate}}</th>
-                <th translate>{{'ADAMOS-Hub Event' | translate}}</th>
+                <th translate>{{'ADAMOS Hub Event' | translate}}</th>
                 <th translate>{{'ADAMOS Destination' | translate}}</th>
                 <th translate>{{'ADAMOS Processing' | translate}}</th>
                 <th translate style="width:2em;">{{'Move' | translate}}</th>
@@ -78,14 +78,14 @@
             </div>
             <div class="row">
                 <div class="form-group">
-                    <label>ADAMOS-Hub Event</label>
-                    <input type="text" [(ngModel)]="selectedRule.eventTrigger.eventCode" placeholder="{{ 'ADAMOS-Hub Event Code or RegExp' | translate }}" class="form-control" />
+                    <label>ADAMOS Hub Event</label>
+                    <input type="text" [(ngModel)]="selectedRule.eventTrigger.eventCode" placeholder="{{ 'ADAMOS Hub Event Code or RegExp' | translate }}" class="form-control" />
                 </div>
             </div>
             <div class="row">
                 <div class="form-group">
-                    <label translate>ADAMOS-Hub ObjectType</label>
-                    <input type="text" [(ngModel)]="selectedRule.eventTrigger.referenceObjectType" placeholder="{{ 'ADAMOS-Hub Object Type or RegExp' | translate }}"class="form-control" />
+                    <label translate>ADAMOS Hub ObjectType</label>
+                    <input type="text" [(ngModel)]="selectedRule.eventTrigger.referenceObjectType" placeholder="{{ 'ADAMOS Hub Object Type or RegExp' | translate }}"class="form-control" />
                 </div>
             </div>
             <!-- <div class="row">
@@ -116,7 +116,7 @@
             </div>  -->
             <div class="row">
                 <div class="form-group" style="position: relative; z-index: 1000;">
-                        <label translate>ADAMOS-Channel</label>
+                        <label translate>Cumulocity Type</label>
                         <div class="c8y-select-wrapper">
                             <select class="form-control" [(ngModel)]="selectedRule.eventProcessor.channel">
                                 <option value="EVENTS">{{ 'Events' | translate }}</option>
@@ -143,7 +143,7 @@
             </div>             -->
             <div class="row">
                     <div class="form-group" style="position: relative; z-index: 1000;">
-                            <label translate>ADAMOS-Processing</label>
+                            <label translate>Cumulocity Processing Mode</label>
                             <div class="c8y-select-wrapper">
                                 <select class="form-control" [(ngModel)]="selectedRule.eventProcessor.processingMode">
                                     <option value="PERSISTENT">{{ 'Persistent' | translate }}</option>
@@ -156,7 +156,7 @@
                 </div>
             <div class="row">
                 <div class="form-group" style="position: relative; z-index: 1000;">
-                        <label translate>Custom-JSON</label>
+                        <label translate>Custom JSON</label>
                         <textarea class="form-control" [(ngModel)]='selectedRule.output'></textarea>
                 </div>            
             </div>
