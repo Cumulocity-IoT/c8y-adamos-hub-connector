@@ -13,6 +13,7 @@ The Cumulocity IoT ADAMOS Hub Connector is based on version 1.0 of the ADAMOS Hu
     * Production Store: TODO
 * Fetch the latest release from the Releases page (https://github.com/SoftwareAG/c8y-adamos-hub-connector/releases). Note that there are different releases depending on whether you want to use the Development or Production instances of the ADAMOS Hub.
 * Install the UI (*hubconnector-UI-1.0.0.zip*) and the microservice (*hubconnector-1.0.0.zip*) on your Cumulocity IoT tenant.
+* Create or modify a global role with the *Adamos hub* Admin permission added. Assign the role to anybody who should be able to access the administration UI.
 * Open ADAMOS Hub Connector Application from the application switcher and configure global settings*:
     * Synchronization - configures which operations (create, update, delete) should be synchronized in which direction
     * OAuth2 - ADAMOS Hub credentials that the Hub Connector should use. Are provided when order of application from ADAMOS Store is fulfilled.
