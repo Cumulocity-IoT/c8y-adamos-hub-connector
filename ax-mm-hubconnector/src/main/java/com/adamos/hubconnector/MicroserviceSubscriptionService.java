@@ -19,7 +19,7 @@ import com.cumulocity.microservice.subscription.model.MicroserviceSubscriptionAd
 @Service
 public class MicroserviceSubscriptionService {
 
-	private final Logger LOGGER = LoggerFactory.getLogger(MicroserviceSubscriptionService.class);
+	private final Logger appLogger = LoggerFactory.getLogger(MicroserviceSubscriptionService.class);
 	
 	@Autowired
 	AuthTokenService tokenService;
@@ -38,16 +38,20 @@ public class MicroserviceSubscriptionService {
 	
 	@EventListener
 	public void onAdded(MicroserviceSubscriptionAddedEvent event) {
-	    LOGGER.info("subscriberAdded Subscription added for tenant: " + event.getCredentials().getTenant());
+	    appLogger.info("subscriberAdded Subscription added for tenant: " + event.getCredentials().getTenant());
 	   
-	    if (hubConnectorService.getGlobalSettings() == null) {
-	    	hubConnectorService.initGlobalSettings();
-		    eventService.initMappingRules();
-	    }  else {
-	    	if(tokenService.getToken() != null) {
-				migrationService.checkMigrations();
-				amqpService.restartAmqpSubscription();		    		
-	    	}
+	    try {
+		    if (hubConnectorService.getGlobalSettings() == null) {
+		    	hubConnectorService.initGlobalSettings();
+			    eventService.initMappingRules();
+		    }  else {
+		    	if(tokenService.getToken() != null) {
+					migrationService.checkMigrations();
+					amqpService.restartAmqpSubscription();		    		
+		    	}
+		    }	    	
+	    } catch (Throwable t) {
+	    	appLogger.error("Caught error in microservice subscription handler", t);
 	    }
 	}
 		
