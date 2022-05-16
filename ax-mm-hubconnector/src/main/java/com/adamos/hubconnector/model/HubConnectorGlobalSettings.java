@@ -26,6 +26,21 @@ public class HubConnectorGlobalSettings {
 	public OAuth2Credentials getOAuth2Credentials() {
 		return this.oAuth2Credentials;
 	}
+
+	private OAuth2Credentials amqpCredentials;
+	
+	@JsonProperty("amqpCredentials")
+	@JSONProperty("amqpCredentials")
+	public void setAmqpCredentials(OAuth2Credentials value) {
+		this.amqpCredentials = value;
+	}
+	
+	@JsonProperty("amqpCredentials")
+	@JSONProperty("amqpCredentials")
+	public OAuth2Credentials getAmqpCredentials() {
+		return this.amqpCredentials;
+	}
+
 	
 	@JsonProperty("defaultSyncConfiguration")
 	private GlobalSyncConfiguration defaultSyncConfiguration;

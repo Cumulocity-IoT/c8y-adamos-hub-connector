@@ -1,20 +1,29 @@
 package com.adamos.hubconnector.services;
 
 import java.io.IOException;
+import java.time.Instant;
+import java.util.Date;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import com.adamos.hubconnector.CustomProperties;
+import com.adamos.hubconnector.model.events.AdamosEventData;
 import com.adamos.hubconnector.model.events.AdamosEventProcessor;
 import com.adamos.hubconnector.model.events.EventDirection;
 import com.adamos.hubconnector.model.events.EventRule;
 import com.adamos.hubconnector.model.events.EventRules;
 import com.cumulocity.microservice.subscription.service.MicroserviceSubscriptionsService;
+import com.cumulocity.model.idtype.GId;
+import com.cumulocity.rest.representation.event.EventRepresentation;
 import com.cumulocity.rest.representation.inventory.ManagedObjectRepresentation;
+import com.cumulocity.sdk.client.event.EventApi;
+import com.cumulocity.sdk.client.event.EventFilter;
+import com.cumulocity.sdk.client.event.PagedEventCollectionRepresentation;
 import com.cumulocity.sdk.client.inventory.InventoryApi;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -30,7 +39,10 @@ public class EventRulesService {
 
 	@Autowired
 	private InventoryApi inventoryApi;
-	
+
+	@Autowired
+	private EventApi eventApi;
+
 	@Autowired
 	private CumulocityService cumulocityService;
 
@@ -42,15 +54,19 @@ public class EventRulesService {
 	
 	@Value("${C8Y.tenant}")
     private String tenant;	
-	 
-	private void debugInfo(String message) {
-		if (appLogger.isDebugEnabled()) {
-			appLogger.debug(message);
-		}
-	}
-	
+	 	
+	/**
+	 * Inbound event processing (Hub -> C8Y)
+	 * 
+	 * @param message
+	 * @param jsonContext
+	 * @return
+	 * @throws JsonParseException
+	 * @throws JsonMappingException
+	 * @throws IOException
+	 */
 	public boolean consumeHubMessage(String message, DocumentContext jsonContext) throws JsonParseException, JsonMappingException, IOException {
-		debugInfo("Consuming message: " + message);
+		appLogger.debug("Consuming message: " + message);
 		EventRules rulesFromHub = getEventRules(EventDirection.FROM_HUB);
 		for (EventRule rule : rulesFromHub.getRules()) {
 			if (rule.doesMatch(message) && rule.isEnabled()) {
@@ -61,6 +77,24 @@ public class EventRulesService {
 			}
 		}	
 		return false;
+	}
+	
+	/**
+	 * Outbound event processing
+	 * TODO replace with Notification API 2.0 once available
+	 */
+	@Scheduled(fixedRate = 60000)
+	public void consumeC8YEvent() {
+		service.runForEachTenant(() -> {
+			appLogger.info("Scheduled Hub event processing for tenant " + service.getTenant());
+			Iterable<EventRepresentation> events = eventApi.getEventsByFilter(new EventFilter().byType("AdamosHubEvent").byFromDate(Date.from(Instant.now().minusSeconds(60)))).get(2000).allPages();
+			for (EventRepresentation e : events) {
+				GId source = e.getSource().getId();
+				AdamosEventData data = e.get(AdamosEventData.class);
+				appLogger.info(e.getAttrs().toString());
+				appLogger.info("Processing event for device " + source + ": " + data);
+			}
+		});
 	}
 	
 	private String getTypeByDirection(EventDirection direction) {
