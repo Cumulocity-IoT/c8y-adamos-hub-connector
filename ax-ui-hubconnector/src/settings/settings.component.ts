@@ -38,6 +38,9 @@ export class SettingsComponent {
 
         this.hubService.getGlobalSettings$().subscribe(data => {
             this.globalSettings = data;
+            if(this.globalSettings.amqpCredentials==null) {
+                this.globalSettings.amqpCredentials={};
+            }
             this.selectedMapping = this.mappings.find(x => x.id == this.globalSettings.defaultMappingId);
             //this.dataLoaded = Promise.resolve(true)
             this.isLoading$.next(false);
@@ -55,9 +58,6 @@ export class SettingsComponent {
         if (this.globalSettings != undefined) {
             this.hubService.updateGlobalSettings$(this.globalSettings).subscribe(data => {
                 this.globalSettings = data;
-                // if (this.globalSettings.oAuth2Token) {
-                //     this.globalSettings.oAuth2Token.last_usage = new Date(this.globalSettings.oAuth2Token.last_usage);
-                // }
                 this.isLoading$.next(false);
             })
         }
