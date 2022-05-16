@@ -72,10 +72,9 @@ public class AmqpThread implements Runnable, HealthIndicator {
         	
         	final HubConnectorGlobalSettings globalSettings = hubConnectorService.getGlobalSettings();
         	
-            final String username = "sag-hubconnector-app-82e6b954-fc30-4d81-8574-7777061b7c17";//;globalSettings.getOAuth2Credentials().getClient_id();
-            final String password = "67a651c3-196d-44c2-8e83-fa0f3b9c4aad";//globalSettings.getOAuth2Credentials().getClient_secret()
-            //final String channelName = "sag-hubconnector-app";//globalSettings.getOAuth2Credentials().getClient_id();
-            connectionFactory = new CachingConnectionFactory(new URI(appProperties.getAdamosAmqpEndpoint()+"/sag-hubconnector-app-82e6b954-fc30-4d81-8574-7777061b7c17"));
+            final String username = globalSettings.getAmqpCredentials().getClient_id();
+            final String password = globalSettings.getAmqpCredentials().getClient_secret();
+            connectionFactory = new CachingConnectionFactory(new URI(appProperties.getAdamosAmqpEndpoint()+"/"+username));
             connectionFactory.setUsername(username);
             connectionFactory.setPassword(password);
             connectionFactory.setRequestedHeartBeat(60);
