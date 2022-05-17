@@ -2,7 +2,7 @@
 <c8y-title *ngIf="device === undefined">Device unknown</c8y-title>
 
 <div *ngIf="(isLoading$ | async)">
-    <i c8y-icon="spinner" class="fa fw fa-spinner fa-spin"></i> {{ 'Loading device-data...' | translate }}
+    <i c8y-icon="spinner" class="fa fw fa-spinner fa-spin"></i> {{ 'Loading device data ...' | translate }}
 </div>
 
 <div *ngIf="!(isLoading$ | async)">
@@ -10,7 +10,7 @@
         <div class="col-md-7 col-sm-12">
             <div *ngIf="device.adamos_hub_connectorSettings !== undefined" class="card shadow1">
                 <div class="card-header separator">
-                    <h4 class="card-title">{{'ADAMOS-Hub Settings' | translate}}</h4>
+                    <h4 class="card-title">{{'ADAMOS Hub Settings' | translate}}</h4>
                 </div>
                 <div class="card-block" style="overflow: visible !important;">
                     <fieldset class="row">
@@ -24,7 +24,7 @@
                                         <label class="c8y-switch">
                                             <input type="checkbox" id="syncToHub"
                                                 [(ngModel)]='device.adamos_hub_connectorSettings.syncConfiguration.syncToHub'>
-                                            <span></span> {{'Sync to ADAMOS-Hub' | translate}}
+                                            <span></span> {{'Sync to ADAMOS Hub' | translate}}
                                         </label>
                                     </div>
                                 </div>
@@ -33,7 +33,7 @@
                                         <label class="c8y-switch">
                                             <input type="checkbox" id="syncFromHub"
                                                 [(ngModel)]='device.adamos_hub_connectorSettings.syncConfiguration.syncFromHub'>
-                                            <span></span> {{'Sync from ADAMOS-Hub' | translate}}
+                                            <span></span> {{'Sync from ADAMOS Hub' | translate}}
                                         </label>
                                     </div>
                                 </div>
@@ -41,7 +41,7 @@
                             <div class="row">
                                 <div class="col-sm-6">
                                     <div class="form-group">
-                                        <label for="name">{{'Last sync' | translate }}</label>
+                                        <label for="name">{{'Last synchronization' | translate }}</label>
                                         <div class="form-inline c8y-datetime-picker">
                                             <div class="form-group datepicker" style="width:100%;">
                                                 <input class="form-control" style="width:100%;"
@@ -52,7 +52,7 @@
                                 </div>
                                 <div class="col-sm-6">
                                     <div class="form-group">
-                                        <label for="name">{{'Initial sync' | translate }}</label>
+                                        <label for="name">{{'Initial synchronization' | translate }}</label>
                                         <div class="form-inline c8y-datetime-picker">
                                             <div class="form-group datepicker" style="width:100%;">
                                                 <input class="form-control" style="width:100%;"
@@ -79,7 +79,7 @@
                                         <label class="c8y-switch">
                                             <input type="checkbox" id="cumulocityIsDevice"
                                                 [ngModel]="device.c8y_IsDevice != null" (change)="cumulocityDeviceChange($event)">
-                                            <span></span> {{'Device-Flag active' | translate}}
+                                            <span></span> {{'Device Flag active' | translate}}
                                         </label>
                                     </div>
                                 </div>
@@ -94,7 +94,7 @@
         <div class="col-md-7 col-sm-12">
             <div class="card shadow1">
                 <div class="card-header separator">
-                    <h4 class="card-title">{{'ADAMOS-Hub Data' | translate}}</h4>
+                    <h4 class="card-title">{{'ADAMOS Hub Data' | translate}}</h4>
                 </div>
                 <div class="card-block" style="overflow: visible !important;">
                     <fieldset class="row">
@@ -107,7 +107,7 @@
                                 <div>
                                     <div class="col-sm-6">
                                         <div class="form-group">
-                                            <label translate>ADAMOS-Hub-UUID</label>
+                                            <label translate>ADAMOS Hub UUID</label>
                                             <input class="form-control" type="text"
                                                 [ngModel]='device.adamos_hub_data.uuid' disabled>
                                         </div>
@@ -144,7 +144,7 @@
     </div>
 
     <div *ngIf="device.adamos_hub_connectorSettings === undefined">
-        {{ 'No ADAMOS-Hub-Settings found.' | translate }}
+        {{ 'No ADAMOS Hubs settings found' | translate }}
     </div>
 
 </div>
