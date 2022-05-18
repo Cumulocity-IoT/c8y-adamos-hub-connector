@@ -446,7 +446,7 @@ public class HubService {
 					if (currentStateInHub != null) {
 						if(isFromHub) {
 							// Name or comment changed?
-							if (!Objects.equals(currentStateInHub.getCustomerIdentification().getName(), device.getName()) || !Objects.equals(currentStateInHub.getCustomerIdentification().getComment(), currentStateInC8Y.getCustomerIdentification().getComment())) {
+							if (!Objects.equals(currentStateInHub.getCustomerIdentification().getName(), device.getName()) || !Objects.equals(currentStateInHub.getCustomerIdentification().getDescription(), currentStateInC8Y.getCustomerIdentification().getDescription())) {
 								isChangeDetected = true;
 								device.setName(currentStateInHub.getCustomerIdentification().getName());
 							}
@@ -486,9 +486,9 @@ public class HubService {
 
 						} else {
 							// Name or comment changed?
-							if (!Objects.equals(currentStateInHub.getCustomerIdentification().getName(), device.getName()) || !Objects.equals(currentStateInHub.getCustomerIdentification().getComment(), currentStateInC8Y.getCustomerIdentification().getComment())) {
+							if (!Objects.equals(currentStateInHub.getCustomerIdentification().getName(), device.getName()) || !Objects.equals(currentStateInHub.getCustomerIdentification().getDescription(), currentStateInC8Y.getCustomerIdentification().getDescription())) {
 								currentStateInHub.getCustomerIdentification().setName(device.getName());
-								currentStateInHub.getCustomerIdentification().setComment(currentStateInC8Y.getCustomerIdentification().getComment());	
+								currentStateInHub.getCustomerIdentification().setDescription(currentStateInC8Y.getCustomerIdentification().getDescription());	
 								isChangeDetected = true;
 							}
 							

@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @JsonIgnoreProperties(ignoreUnknown=true)
 @EqualsAndHashCode
 public class CustomerIdentificationDTO {
-	private String comment;
+	private String description;
 	private String inventoryNumber;
 	private String name;
 	private String supervisorName;
