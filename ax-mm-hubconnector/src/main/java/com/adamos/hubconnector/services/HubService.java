@@ -280,7 +280,7 @@ public class HubService {
 		
 		String name = obj.getName().isBlank() ? "Unknown " + obj.getId().getValue() : obj.getName();
 		String serialNumber = "0";
-		String model = "Unknown Model";
+		String model = obj.getName();
 		if (obj.hasProperty(CustomProperties.C8Y.HARDWARE)) {
 			Hardware c8yHardware = mapper.convertValue(obj.getProperty(CustomProperties.C8Y.HARDWARE), Hardware.class);
 			if (!Strings.isNullOrEmpty(c8yHardware.getSerialNumber())) {
