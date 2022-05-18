@@ -7,6 +7,7 @@ import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import org.apache.commons.codec.binary.Base64;
 import org.joda.time.DateTime;
@@ -437,63 +438,81 @@ public class HubService {
 			boolean isChangeDetected = false;
 			
 			if (isHubDevice(device)) {
-				
 				HubConnectorSettings settings = getConnectorSettingsByObj(device);
-
 				try {
 					// Read current Data in Hub
-					EquipmentDTO hubDevice = getMachineTool(settings.getUuid());
-
-					if (hubDevice != null) {
-						EquipmentDTO currentDeviceData = mapper.convertValue(device.getProperty(CustomProperties.HUB_DATA), EquipmentDTO.class);
-						
-						// Name or comment changed?
-						if (!hubDevice.getCustomerIdentification().getName().equals(device.getName()) || 
-							(hubDevice.getCustomerIdentification().getComment() != null && !hubDevice.getCustomerIdentification().getComment().equals(currentDeviceData.getCustomerIdentification().getComment()))) {
-							isChangeDetected = true;
-							if (isFromHub) {
-								device.setName(hubDevice.getCustomerIdentification().getName());
-							} else {
-								hubDevice.getCustomerIdentification().setName(device.getName());
-								hubDevice.getCustomerIdentification().setComment(currentDeviceData.getCustomerIdentification().getComment());							
-								hubDevice = updateEquipment(hubDevice);
-							}
-						}
-						
-						// Serial number changed?
-						if (device.hasProperty(CustomProperties.C8Y.HARDWARE)) {
-							Hardware c8yHardware = mapper.convertValue(device.getProperty(CustomProperties.C8Y.HARDWARE), Hardware.class);
-							if (!Strings.isNullOrEmpty(c8yHardware.getSerialNumber()) && 
-								!c8yHardware.getSerialNumber().equals(hubDevice.getManufacturerIdentification().getSerialNumber())) {
+					EquipmentDTO currentStateInHub = getMachineTool(settings.getUuid());
+					EquipmentDTO currentStateInC8Y = mapper.convertValue(device.getProperty(CustomProperties.HUB_DATA), EquipmentDTO.class);
+					if (currentStateInHub != null) {
+						if(isFromHub) {
+							// Name or comment changed?
+							if (!Objects.equals(currentStateInHub.getCustomerIdentification().getName(), device.getName()) || !Objects.equals(currentStateInHub.getCustomerIdentification().getComment(), currentStateInC8Y.getCustomerIdentification().getComment())) {
 								isChangeDetected = true;
-								if (isFromHub) {
-									c8yHardware.setSerialNumber(hubDevice.getManufacturerIdentification().getSerialNumber());
+								device.setName(currentStateInHub.getCustomerIdentification().getName());
+							}
+
+							// Serial number changed?
+							if (device.hasProperty(CustomProperties.C8Y.HARDWARE)) {
+								Hardware c8yHardware = mapper.convertValue(device.getProperty(CustomProperties.C8Y.HARDWARE), Hardware.class);
+								if (!Objects.equals(c8yHardware.getSerialNumber(), currentStateInHub.getManufacturerIdentification().getSerialNumber())) {
+									isChangeDetected = true;
+									c8yHardware.setSerialNumber(currentStateInHub.getManufacturerIdentification().getSerialNumber());
 									device.setProperty(CustomProperties.C8Y.HARDWARE, c8yHardware);
-								} else {
-									hubDevice.getManufacturerIdentification().setSerialNumber(c8yHardware.getSerialNumber());
-									hubDevice = updateEquipment(hubDevice);
+								}
+								if (!Objects.equals(c8yHardware.getModel(), currentStateInHub.getManufacturerIdentification().getName())) {
+									isChangeDetected = true;
+									c8yHardware.setModel(currentStateInHub.getManufacturerIdentification().getName());
+									device.setProperty(CustomProperties.C8Y.HARDWARE, c8yHardware);
+								}
+
+							}
+
+							// OemUniqueTypeIdentifier changed? -> new Thumbnail-Image has to be added
+							if ((currentStateInHub.getManufacturerIdentification().getOemUniqueTypeIdentifier() != null && !currentStateInHub.getManufacturerIdentification().getOemUniqueTypeIdentifier().equals(currentStateInC8Y.getManufacturerIdentification().getOemUniqueTypeIdentifier())) || isForceImageUpdate) {
+								setTumbnailByOemId(device, currentStateInHub.getManufacturerIdentification().getOemUniqueTypeIdentifier());
+								isChangeDetected = true;
+							}
+							
+							if (isChangeDetected) {
+								// Save data to Inventory
+								device.setProperty(CustomProperties.HUB_DATA, currentStateInHub);
+								settings.setLastSync(DateTime.now().withZone(DateTimeZone.UTC));
+								device.setProperty(CustomProperties.HUB_CONNECTOR_SETTINGS, settings);
+								device.setLastUpdatedDateTime(null);
+								inventoryApi.update(device);
+								LOGGER.info("deviceUpdated " + device.getId().getValue());
+							}
+							
+
+						} else {
+							// Name or comment changed?
+							if (!Objects.equals(currentStateInHub.getCustomerIdentification().getName(), device.getName()) || !Objects.equals(currentStateInHub.getCustomerIdentification().getComment(), currentStateInC8Y.getCustomerIdentification().getComment())) {
+								currentStateInHub.getCustomerIdentification().setName(device.getName());
+								currentStateInHub.getCustomerIdentification().setComment(currentStateInC8Y.getCustomerIdentification().getComment());	
+								isChangeDetected = true;
+							}
+							
+							// Serial number changed?
+							if (device.hasProperty(CustomProperties.C8Y.HARDWARE)) {
+								Hardware c8yHardware = mapper.convertValue(device.getProperty(CustomProperties.C8Y.HARDWARE), Hardware.class);
+								if (!Objects.equals(c8yHardware.getSerialNumber(), currentStateInHub.getManufacturerIdentification().getSerialNumber())) {
+									currentStateInHub.getManufacturerIdentification().setSerialNumber(c8yHardware.getSerialNumber());
+									isChangeDetected = true;
+								}
+								if (!Objects.equals(c8yHardware.getModel(), currentStateInHub.getManufacturerIdentification().getName())) {
+									currentStateInHub.getManufacturerIdentification().setName(c8yHardware.getModel());
+									isChangeDetected = true;
 								}
 							}
-						}
-		
-						// OemUniqueTypeIdentifier changed? -> new Thumbnail-Image has to be added
-						if (isFromHub && ((hubDevice.getManufacturerIdentification().getOemUniqueTypeIdentifier() != null && !hubDevice.getManufacturerIdentification().getOemUniqueTypeIdentifier().equals(currentDeviceData.getManufacturerIdentification().getOemUniqueTypeIdentifier())) || isForceImageUpdate)) {
-							setTumbnailByOemId(device, hubDevice.getManufacturerIdentification().getOemUniqueTypeIdentifier());
-							isChangeDetected = true;
-						}
-									
-						if (isChangeDetected) {
-							// Save data to Inventory
-							device.setProperty(CustomProperties.HUB_DATA, hubDevice);
-							settings.setLastSync(DateTime.now().withZone(DateTimeZone.UTC));
-							device.setProperty(CustomProperties.HUB_CONNECTOR_SETTINGS, settings);
-							device.setLastUpdatedDateTime(null);
-							inventoryApi.update(device);
-							LOGGER.info("deviceUpdated " + device.getId().getValue());
+
+							if (isChangeDetected) {
+								currentStateInHub = updateEquipment(currentStateInHub);
+								LOGGER.info("deviceUpdatedInHub " + device.getId().getValue());
+							}
 						}
 					}
 				} catch (Exception ex) {
-					LOGGER.error("Error while updateing device", ex);
+					LOGGER.error("Error while updating device", ex);
 					throw ex;
 				}
 				
@@ -596,6 +615,7 @@ public class HubService {
 						if (!Strings.isNullOrEmpty(source.getManufacturerIdentification().getSerialNumber())) {
 							Hardware c8yHardware = new Hardware();
 							c8yHardware.setSerialNumber(source.getManufacturerIdentification().getSerialNumber());
+							c8yHardware.setModel(source.getManufacturerIdentification().getName());
 							target.setProperty(CustomProperties.C8Y.HARDWARE, c8yHardware);
 						}
 
