@@ -32,6 +32,8 @@ import com.cumulocity.microservice.subscription.service.MicroserviceSubscription
 import com.cumulocity.model.idtype.GId;
 import com.cumulocity.rest.representation.event.EventRepresentation;
 import com.cumulocity.rest.representation.inventory.ManagedObjectRepresentation;
+import com.cumulocity.sdk.client.Param;
+import com.cumulocity.sdk.client.QueryParam;
 import com.cumulocity.sdk.client.event.EventApi;
 import com.cumulocity.sdk.client.event.EventFilter;
 import com.cumulocity.sdk.client.inventory.InventoryApi;
@@ -47,6 +49,13 @@ public class EventRulesService {
 	private static final ObjectMapper mapper = new ObjectMapper().registerModule(new JodaModule());
 	private static final Logger appLogger = LoggerFactory.getLogger(EventRulesService.class);
 
+	QueryParam revertParam = new QueryParam(new Param() {
+		@Override
+		public String getName() {
+			return "revert";
+		}
+	}, "true");
+	
 	@Autowired
 	private HubProperties appProperties;
 
@@ -109,7 +118,8 @@ public class EventRulesService {
 	public void consumeC8YEvent() {
 		service.runForEachTenant(() -> {
 			appLogger.info("Scheduled Hub event processing for tenant " + service.getTenant());
-			Iterable<EventRepresentation> events = eventApi.getEventsByFilter(new EventFilter().byType("AdamosHubEvent").byFromDate(Date.from(Instant.now().minusSeconds(60)))).get(2000).allPages();
+			Iterable<EventRepresentation> events = eventApi.getEventsByFilter(
+					new EventFilter().byType("AdamosHubEvent").byFromDate(Date.from(Instant.now().minusSeconds(60)))).get(2000, revertParam).allPages();
 			for (EventRepresentation e : events) {
 				GId source = e.getSource().getId();
 				ManagedObjectRepresentation mo = inventoryApi.get(source);
