@@ -1,0 +1,55 @@
+<c8y-title translate>{{ 'Mappings' | translate}}</c8y-title>
+
+<c8y-action-bar-item placement="right">
+    <a (click)="onClickAdd()" class="btn btn-link">
+        <i c8yIcon="plus-circle"></i> Add mapping 
+    </a>
+</c8y-action-bar-item>
+
+<c8y-action-bar-item placement="right">
+    <a class="btn btn-link" title="Refresh subscriptions page" (click)="onRefresh()">
+        <i c8y-icon="refresh" [ngClass]="{'fa-spin': (isLoading$ | async)  }" class="fa fw fa-refresh"></i>
+        <span translate style="margin-left: 5px;">Reload</span>
+    </a>
+</c8y-action-bar-item>
+
+<div *ngIf="!(isLoading$ | async)">
+    <div *ngIf="mappings === undefined || mappings.length === 0">
+        <div class="c8y-empty-state text-left">
+            <h1 class="icon c8y-icon c8y-icon-device-protocols"></h1>
+            <p>No mappings found.</p>
+        </div>
+    </div>
+
+    <table class="table table-striped" *ngIf="mappings !== undefined && mappings.length > 0">
+        <thead>
+            <tr>
+                <th translate>{{'Id' | translate}}</th>
+                <th translate>{{'Name' | translate}}</th>
+                <th class="text-right" translate>{{'Action' | translate}}</th>
+            </tr>
+        </thead>
+        <tbody class="table-hover">
+        <tr *ngFor="let mapping of mappings">
+            <td>{{mapping.id}} </td>
+            <td>
+                <a [routerLink]="['/mappings', mapping.id]" >
+                    <span *ngIf="mapping.name !== undefined; else nodevicename">{{mapping.name}}</span>
+                    <span *ngIf="mapping.name === undefined"> - </span>
+                </a>
+                <span *ngIf="mapping.id == defaultMappingId"> ({{ 'default' | translate }})</span>
+            </td>        
+            <td class="text-right" style="padding:0px;">
+                <div class="btn-group" dropdown>
+                    <button id="btnVerticalDrop" type="button" class="btn-dot dropdown-toggle c8y-dropdown" style="padding: 7px;" dropdownToggle aria-haspopup="true" aria-expanded="false"> <i c8y-icon="ellipsis-v" class="fa fw fa-ellipsis-v"></i> </button>
+                    <ul class="dropdown-menu"  *dropdownMenu aria-labelledby="btnVerticalDrop" style="right: 0px; left:auto;">
+                        <li><a [routerLink]="['/mappings', mapping.id]"><i class="fa fa-edit"></i> {{ 'Edit' | translate }}</a></li>
+                        <li><a (click)="onClickDuplicate(mapping.id)"><i class="fa fa-clone"></i> {{ 'Duplicate' | translate }}</a></li>
+                        <li *ngIf="mapping.id != defaultMappingId"><a (click)="onClickDelete(mapping.id)"><i class="fa fa-remove"></i> {{ 'Delete' | translate }}</a></li>
+                    </ul>
+                </div>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>

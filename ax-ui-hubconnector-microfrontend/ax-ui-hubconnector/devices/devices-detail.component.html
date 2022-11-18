@@ -1,0 +1,143 @@
+<c8y-title *ngIf="device !== undefined">{{device.id}} {{device.name}}</c8y-title>
+<c8y-title *ngIf="device === undefined">Device unknown</c8y-title>
+
+<div *ngIf="(isLoading$ | async)">
+    <i c8y-icon="spinner" class="fa fw fa-spinner fa-spin"></i> {{ 'Loading device data ...' | translate }}
+</div>
+
+<div *ngIf="!(isLoading$ | async)">
+    <div class="row">
+        <div class="col-md-7 col-sm-12">
+            <div *ngIf="device.adamos_hub_connectorSettings !== undefined" class="card shadow1">
+                <div class="card-header separator">
+                    <h4 class="card-title">{{'ADAMOS Hub Settings' | translate}}</h4>
+                </div>
+                <div class="card-block" style="overflow: visible !important;">
+                    <fieldset class="row">
+                        <div class="col-sm-3">
+                            <h4>{{'Synchronisation' | translate}}</h4>
+                        </div>
+                        <div class="col-sm-9">
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="c8y-switch">
+                                            <input type="checkbox" id="syncToHub"
+                                                [(ngModel)]='device.adamos_hub_connectorSettings.syncConfiguration.syncToHub'>
+                                            <span></span> {{'Sync to ADAMOS Hub' | translate}}
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="c8y-switch">
+                                            <input type="checkbox" id="syncFromHub"
+                                                [(ngModel)]='device.adamos_hub_connectorSettings.syncConfiguration.syncFromHub'>
+                                            <span></span> {{'Sync from ADAMOS Hub' | translate}}
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label for="name">{{'Last synchronization' | translate }}</label>
+                                        <div class="form-inline c8y-datetime-picker">
+                                            <div class="form-group datepicker" style="width:100%;">
+                                                <input class="form-control" style="width:100%;"
+                                                    [ngModel]="lastSync" disabled="disabled">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label for="name">{{'Initial synchronization' | translate }}</label>
+                                        <div class="form-inline c8y-datetime-picker">
+                                            <div class="form-group datepicker" style="width:100%;">
+                                                <input class="form-control" style="width:100%;"
+                                                    placeholder="{{'Date' | translate}}" is-open="openFrom"
+                                                    uib-datepicker-popup datepicker-append-to-body="false"
+                                                    show-button-bar="false" on-open-focus="false" show-weeks="false"
+                                                    [ngModel]="initialSync"
+                                                    (ngClick)="openFrom=true" disabled="disabled">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+                    <fieldset class="row">
+                        <div class="col-sm-3">
+                            <h4>{{'Cumulocity' | translate}}</h4>
+                        </div>
+                        <div class="col-sm-9">
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="c8y-switch">
+                                            <input type="checkbox" id="cumulocityIsDevice"
+                                                [ngModel]="device.c8y_IsDevice != null" (change)="cumulocityDeviceChange($event)">
+                                            <span></span> {{'Device Flag active' | translate}}
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>                    
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-7 col-sm-12">
+            <div class="card shadow1">
+                <div class="card-header separator">
+                    <h4 class="card-title">{{'ADAMOS Hub Data' | translate}}</h4>
+                </div>
+                <div class="card-block" style="overflow: visible !important;">
+                    <fieldset class="row">
+                        <div class="col-sm-3">
+                            <h4>{{'Basic Data' | translate}}</h4>
+                            <img *ngIf="device.adamos_hub_thumbnail" style="margin-top:15px" src="data:{{device.adamos_hub_thumbnail.contentType}};base64,{{device.adamos_hub_thumbnail.data}}" />
+                        </div>
+                        <div class="col-sm-9">
+                            <div class="row">
+                                <div>
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label translate>ADAMOS Hub UUID</label>
+                                            <input class="form-control" type="text"
+                                                [ngModel]='device.adamos_hub_data.uuid' disabled>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div>
+                                    <div class="col-sm-6">
+                                        <div class="form-group">
+                                            <label translate>Description</label>
+                                            <textarea class="form-control" [(ngModel)]='device.adamos_hub_data.customerIdentification.description'>
+                                            </textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>                            
+                        </div>
+                    </fieldset>
+                </div>
+                <div class="card-block col-sm-offset-3 text-right" style="overflow: visible !important;">
+                    <button class="btn" [routerLink]="['/devices']">{{'Cancel' | translate}}</button>
+                    <button class="btn btn-primary" (click)="saveDevice()">{{'Save' | translate}}</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div *ngIf="device.adamos_hub_connectorSettings === undefined">
+        {{ 'No ADAMOS Hubs settings found' | translate }}
+    </div>
+
+</div>

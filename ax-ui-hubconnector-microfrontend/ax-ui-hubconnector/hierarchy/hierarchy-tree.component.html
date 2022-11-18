@@ -1,0 +1,16 @@
+<c8y-title translate>{{ title | translate}}</c8y-title>
+
+<div *ngIf="!(isLoading$ | async)">
+  <div *ngIf="tree === undefined">
+      <div class="c8y-empty-state text-left">
+          <h1 class="icon c8y-icon fa fa-object-group"></h1>
+          <p>No hierarchy found.</p>
+      </div>
+  </div>
+  
+  <div *ngIf="tree !== undefined">
+    <hierarchy-item *ngFor="let item of tree.children" [(item)]="item" [isHidden]="false">
+
+    </hierarchy-item>
+  </div>
+</div>

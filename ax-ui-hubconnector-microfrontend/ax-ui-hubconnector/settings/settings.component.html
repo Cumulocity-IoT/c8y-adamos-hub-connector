@@ -1,0 +1,134 @@
+<c8y-title>{{ 'Settings' | translate }}</c8y-title>
+<div *ngIf="isLoading$ | async"><i c8y-icon="spinner" class="dlt-c8y-icon-spinner"></i> {{ 'Loading global settings...' | translate }}</div>
+
+<div class="row" *ngIf="!(isLoading$ | async)">
+    <div class="col-md-7 col-sm-12">
+        <div class="card shadow1">
+            <div class="card-header separator">
+                <h4 class="card-title">{{ 'Global settings' | translate }}</h4>
+            </div>
+            <div class="card-block" style="overflow: visible !important;">
+                <fieldset class="row">
+                    <div class="col-sm-3">
+                        <h4>{{'Synchronisation' | translate}}</h4>
+                    </div>
+                    <div class="col-sm-9">
+                        <div class="row">
+                            <div class="col-sm-2">
+                            </div>
+                            <div class="col-sm-3 bottom-m-md">
+                                ADAMOS Core <i class="dlt-c8y-icon-arrow-right"></i> Hub
+                            </div>
+                            <div class="col-sm-3 bottom-m-md">
+                                Hub <i class="dlt-c8y-icon-arrow-right"></i> ADAMOS Core
+                            </div>
+                            <div class="col-sm-3 bottom-m-md" style="text-align: center;">
+                                {{ 'Set Device Flag' | translate }}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-2 top-m-sm">
+                                {{ 'CREATE' | translate }}
+                            </div>
+                            <div class="col-sm-3 form-group">
+                                <label class="c8y-switch" style="margin-left: 35%;">
+                                    <input type="checkbox" id="chkAdamosToHubCreate" [(ngModel)]='globalSettings.defaultSyncConfiguration.adamosToHub.create'>
+                                    <span></span>
+                                </label>
+                            </div>
+                            <div class="col-sm-3 form-group">
+                                <label class="c8y-switch" style="margin-left: 35%;">
+                                    <input type="checkbox" id="chkHubToAdamosCreate" [(ngModel)]='globalSettings.defaultSyncConfiguration.hubToAdamos.create'>
+                                    <span></span>
+                                </label>
+                            </div>
+                            <div class="col-sm-3 form-group">
+                                <label class="c8y-switch" style="margin-left: 35%;">
+                                    <input type="checkbox" id="chkSetC8YIsDevice" [(ngModel)]='globalSettings.defaultSyncConfiguration.hubToAdamos.c8yIsDevice'>
+                                    <span></span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-2 top-m-sm">
+                                {{ 'UPDATE' | translate }}
+                            </div>
+                            <div class="col-sm-3 form-group">
+                                <label class="c8y-switch" style="margin-left: 35%;">
+                                    <input type="checkbox" id="chkAdamosToHubUpdate" [(ngModel)]='globalSettings.defaultSyncConfiguration.adamosToHub.update'>
+                                    <span></span>
+                                </label>
+                            </div>
+                            <div class="col-sm-3 form-group">
+                                <label class="c8y-switch" style="margin-left: 35%;">
+                                    <input type="checkbox" id="chkHubToAdamosUpdate" [(ngModel)]='globalSettings.defaultSyncConfiguration.hubToAdamos.update'>
+                                    <span></span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-2 top-m-sm">
+                                {{ 'DELETE' | translate }}
+                            </div>
+                            <div class="col-sm-3 form-group">
+                                <label class="c8y-switch" style="margin-left: 35%;">
+                                        <input type="checkbox" id="chkAdamosToHubDelete" [(ngModel)]='globalSettings.defaultSyncConfiguration.adamosToHub.delete'>
+                                        <span></span>
+                                    </label>
+                            </div>
+                            <div class="col-sm-3 form-group">
+                                <label class="c8y-switch" style="margin-left: 35%;">
+                                        <input type="checkbox" id="chkHubToAdamosDelete" [(ngModel)]='globalSettings.defaultSyncConfiguration.hubToAdamos.delete'>
+                                        <span></span>
+                                    </label>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+                <fieldset class="row">
+                    <div class="col-sm-3">
+                        <h4>{{'OAuth2' | translate}}</h4>
+                    </div>
+                    <div class="col-sm-9">
+                        <div class="form-group">
+                            <label for="client_id">{{'Identification' | translate }}</label>
+                            <input class="form-control" type="text" id="client_id" [(ngModel)]="globalSettings.oAuth2Credentials.client_id">
+                        </div>
+                        <div class="form-group">
+                            <label for="grant_type">{{'Grant Type' | translate }}</label>
+                            <input class="form-control" type="text" id="grant_type" [(ngModel)]="globalSettings.oAuth2Credentials.grant_type">
+                        </div>
+                        <div class="form-group">
+                            <label for="client_secret">{{'Secret' | translate }}</label>
+                            <input class="form-control" type="password" id="client_secret" [(ngModel)]="globalSettings.oAuth2Credentials.client_secret">
+                        </div>
+                    </div>
+                </fieldset>
+                <fieldset class="row">
+                    <div class="col-sm-3">
+                        <h4>{{'AMQP' | translate}}</h4>
+                    </div>
+                    <div class="col-sm-9">
+                        <div class="form-group">
+                            <label for="amqp_client_id">{{'Identification' | translate }}</label>
+                            <input class="form-control" type="text" id="aqmp_client_id" [(ngModel)]="globalSettings.amqpCredentials.client_id">
+                        </div>
+                        <div class="form-group">
+                            <label for="amqp_grant_type">{{'Grant Type' | translate }}</label>
+                            <input class="form-control" type="text" id="amqp_grant_type" [(ngModel)]="globalSettings.amqpCredentials.grant_type">
+                        </div>
+                        <div class="form-group">
+                            <label for="amqp_client_secret">{{'Secret' | translate }}</label>
+                            <input class="form-control" type="password" id="aqmp_client_secret" [(ngModel)]="globalSettings.amqpCredentials.client_secret">
+                        </div>
+                    </div>
+                </fieldset>
+
+
+            </div>
+            <div class="card-block col-sm-offset-3 text-right" style="overflow: visible !important;">
+                <button type="submit" class="btn btn-primary" (click)="saveSettings()">{{'Save' | translate}}</button>
+            </div>
+        </div>
+    </div>
+</div>

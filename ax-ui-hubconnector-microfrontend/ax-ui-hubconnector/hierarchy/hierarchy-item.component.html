@@ -1,0 +1,32 @@
+<!-- [draggable]="item.level==4" (dragstart)="dragStart($event, item, this)" (dragend)="dragEnd($event, item)" (dragover)="dragOver($event, item)" (drop)="drop($event, item)" -->
+<div [hidden]="isHidden">
+  <div class="row">
+    <div class="col-sm-4" [ngStyle]="{'left': ((item.level -1) * 30) + 'px'}" style="position: relative;" >
+      <div class="card">
+        <div class="card-header separator" (click)="toggle()">
+          <h4 class="card-title">
+            <i style="margin-right: 10px;" class="fa" [ngClass]="{'fa-industry': (item.level==1), 'fa-map': (item.level==2), 'fa-road': (item.level==3), 'fa-gears': (item.level==4)}" > </i>
+            {{ name() }}
+          </h4>
+          <a style="right:16px;position:absolute;" *ngIf="item.children.length > 0"><i class="fa" [ngClass]="{'fa-chevron-down': isDown, 'fa-chevron-up': !isDown}"></i></a>
+        </div>
+        <div class="card-block">
+          <div *ngIf="item.level==1">
+            {{ item.data.plantAddress.street }}, {{ item.data.plantAddress.city }}
+          </div>
+          <div *ngIf="item.level==2">
+            {{ item.data.description }}
+          </div>
+          <div *ngIf="item.level==3">
+            {{ 'Type' | translate }}: {{ item.data.type }}
+          </div>      
+          <div *ngIf="item.level==4">
+              {{ item.data.locationIdentification.locationMachine }}
+            </div>    
+        </div>
+      </div>
+    </div>
+  </div>
+  <hierarchy-item *ngFor="let subitem of item.children" [(item)]="subitem" #childItems>
+  </hierarchy-item>
+</div>
