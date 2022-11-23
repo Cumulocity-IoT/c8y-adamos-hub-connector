@@ -1,0 +1,109 @@
+<c8y-title translate>{{
+  (activeFilter === "CUMULOCITY_DEVICES"
+    ? "Cumulocity IoT Devices"
+    : "ADAMOS Devices"
+  ) | translate
+}}</c8y-title>
+
+<c8y-action-bar-item placement="left">
+  <ul class="nav navbar-nav navbar-left">
+    <li class="btn-group">
+      <button
+        type="button"
+        class="btn btn-default ng-binding"
+        (click)="changeFilter('CUMULOCITY_DEVICES')"
+        [ngClass]="{ active: activeFilter === 'CUMULOCITY_DEVICES' }"
+      >
+        <i class="fa fa-unlink"></i> {{ "Cumulocity IoT Devices" | translate }}
+      </button>
+      <button
+        type="button"
+        class="btn btn-default ng-binding"
+        (click)="changeFilter('ADAMOS_DEVICES')"
+        [ngClass]="{ active: activeFilter === 'ADAMOS_DEVICES' }"
+      >
+        <i class="fa fa-link"></i> {{ "ADAMOS Hub Devices" | translate }}
+      </button>
+    </li>
+  </ul>
+</c8y-action-bar-item>
+
+<c8y-data-grid
+  *ngIf="activeFilter === 'CUMULOCITY_DEVICES'"
+  [title]="'Cumulocity IoT Devices' | translate"
+  [columns]="c8yColumns"
+  [pagination]="pagination"
+  [actionControls]="actionControls"
+  [serverSideDataCallback]="devicesDataSource.serverSideDataCallback"
+  [refresh]="refresh"
+>
+  <c8y-ui-empty-state
+    [icon]="'search'"
+    [title]="'No matching devices.' | translate"
+    [subtitle]="'Refine your search terms' | translate"
+    [horizontal]="true"
+  ></c8y-ui-empty-state>
+  <c8y-column name="name">
+    <ng-container *c8yCellRendererDef="let context">
+      <a
+        *ngIf="context.item.adamos_hub_connectorSettings"
+        [routerLink]="['/devices', context.item.id]"
+        >{{ context.value }}</a
+      >
+      <span *ngIf="!context.item.adamos_hub_connectorSettings">{{
+        context.value
+      }}</span>
+    </ng-container>
+  </c8y-column>
+  <c8y-column name="linked">
+    <ng-container *c8yCellRendererDef="let context">
+      <span
+        ><i
+          class="{{
+            context.item.adamos_hub_connectorSettings
+              ? 'text-success'
+              : 'text-danger'
+          }}"
+          c8yIcon="{{
+            context.item.adamos_hub_connectorSettings ? 'link' : 'unlink'
+          }}"
+        ></i
+      ></span>
+      {{
+        (context.item.adamos_hub_connectorSettings
+          ? "Linked with " + context.item.adamos_hub_connectorSettings.uuid
+          : "Disconnected"
+        ) | translate
+      }}
+    </ng-container>
+  </c8y-column>
+</c8y-data-grid>
+
+<c8y-data-grid
+  *ngIf="activeFilter === 'ADAMOS_DEVICES'"
+  [pagination]="pagination"
+  [columns]="adamosColumns"
+  title="{{ 'ADAMOS Hub Devices' | translate }}"
+  [rows]="adamosDevices"
+  (onReload)="reloadAdamosDevices()"
+  [actionControls]="actionControls"
+>
+  <c8y-ui-empty-state
+    [icon]="'search'"
+    [title]="'No matching devices.' | translate"
+    [subtitle]="'Refine your search terms' | translate"
+    [horizontal]="true"
+  ></c8y-ui-empty-state>
+
+  <c8y-column name="linked">
+    <ng-container *c8yCellRendererDef="let context">
+      <span
+        ><i
+          class="{{ context.value ? 'text-success' : 'text-danger' }}"
+          c8yIcon="{{ context.value ? 'link' : 'unlink' }}"
+        ></i
+      ></span>
+      {{ (context.value ? "Linked" : "Disconnected") | translate }}
+    </ng-container>
+  </c8y-column>
+</c8y-data-grid>

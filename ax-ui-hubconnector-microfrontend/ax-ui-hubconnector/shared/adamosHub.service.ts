@@ -202,7 +202,7 @@ export class AdamosHubService {
         return this.getRestObject$("/assets?disconnected=true", "getDisconnectedEquipment");
     }
 
-    importHubDevice$(uuid: number, isDevice: boolean) {
+    importHubDevice$(uuid: number, isDevice: boolean = true) {
         const url = `${this.hubUrl}/synchronization/fromHub/${uuid}?isDevice=${isDevice}`;
         return this.http.post<any>(url, "", this.httpOptions).pipe(
             tap((device: any) => console.log(`imported device w/ uuid=${uuid} to new id=${device.id['value']}`)),

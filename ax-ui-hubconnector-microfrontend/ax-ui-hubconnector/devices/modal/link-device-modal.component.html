@@ -1,0 +1,32 @@
+<c8y-modal [title]="title" [customFooter]="true">
+  <div class="alert alert-info" role="alert">
+    <strong>Info:</strong> {{ infoMessage }}
+  </div>
+
+  <c8y-to-adamos-form
+    (selectedDevice)="onSelectDevice($event)"
+    *ngIf="mode === 'C8yToAdamos'"
+  ></c8y-to-adamos-form>
+  <adamos-to-c8y-form
+    (selectedDevice)="onSelectDevice($event)"
+    *ngIf="mode === 'AdamosToC8y'"
+  ></adamos-to-c8y-form>
+
+  <div class="modal-footer">
+    <button class="btn btn-default" (click)="onCancel()">
+      {{ "Cancel" | translate }}
+    </button>
+    <button
+      class="btn btn-primary"
+      [disabled]="!selectedDevice"
+      (click)="linkToExistingDevice()"
+    >
+      <i c8yIcon="chain"></i>
+      {{ "Link to existing device" | translate }}
+    </button>
+    <button class="btn btn-primary" (click)="createNewDevice()">
+      <i c8yIcon="plus-circle"></i>
+      {{ "Create new device" | translate }}
+    </button>
+  </div>
+</c8y-modal>

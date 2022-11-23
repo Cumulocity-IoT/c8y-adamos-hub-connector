@@ -27,6 +27,6 @@
       </div>
     </div>
   </div>
-  <hierarchy-item *ngFor="let subitem of item.children" [(item)]="subitem" #childItems>
+  <hierarchy-item *ngFor="let subitem of item.children" [item]="subitem" #childItems>
   </hierarchy-item>
 </div>

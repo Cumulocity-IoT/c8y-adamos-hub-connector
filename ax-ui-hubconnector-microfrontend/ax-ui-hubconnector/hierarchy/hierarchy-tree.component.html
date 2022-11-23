@@ -9,7 +9,7 @@
   </div>
   
   <div *ngIf="tree !== undefined">
-    <hierarchy-item *ngFor="let item of tree.children" [(item)]="item" [isHidden]="false">
+    <hierarchy-item *ngFor="let item of tree.children" [item]="item" [isHidden]="false">
 
     </hierarchy-item>
   </div>

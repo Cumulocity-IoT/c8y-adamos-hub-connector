@@ -7,7 +7,6 @@ import {
   CoreModule,
   RouterModule,
 } from "@c8y/ngx-components";
-import { HubConnectorPluginModule } from "./ax-ui-hubconnector/hubconnector-plugin.module";
 
 @NgModule({
   imports: [
@@ -15,7 +14,6 @@ import { HubConnectorPluginModule } from "./ax-ui-hubconnector/hubconnector-plug
     ngRouterModule.forRoot([], { enableTracing: false, useHash: true }),
     RouterModule.forRoot(),
     CoreModule.forRoot(),
-    HubConnectorPluginModule
   ],
   providers: [BsModalRef],
   bootstrap: [BootstrapComponent],

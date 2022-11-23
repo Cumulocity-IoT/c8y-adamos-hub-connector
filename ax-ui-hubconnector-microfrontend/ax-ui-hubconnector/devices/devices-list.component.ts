@@ -27,7 +27,6 @@ export class DevicesListComponent {
 
   @ViewChild("dlgImport") dlgImport: any;
   modalRef: BsModalRef;
-  selectedIsDevice: boolean;
   selectedHubDeviceUuid: any;
 
   // The filter object will add query parameters
@@ -121,7 +120,6 @@ export class DevicesListComponent {
   }
 
   async onImportClick() {
-    this.selectedIsDevice = true;
     this.selectedHubDeviceUuid = null;
     this.isDialogDataLoading$.next(true);
     forkJoin([
@@ -129,8 +127,6 @@ export class DevicesListComponent {
       this.hubService.getGlobalSettings$(),
     ]).subscribe((results) => {
       this.equipmentList = results[0];
-      this.selectedIsDevice =
-        results[1].defaultSyncConfiguration.hubToAdamos.c8yIsDevice;
       this.isDialogDataLoading$.next(false);
     });
 
@@ -141,7 +137,7 @@ export class DevicesListComponent {
     if (this.selectedHubDeviceUuid != null) {
       this.isDialogDataImporting$.next(true);
       this.hubService
-        .importHubDevice$(this.selectedHubDeviceUuid, this.selectedIsDevice)
+        .importHubDevice$(this.selectedHubDeviceUuid)
         .subscribe((device) => {
           this.router.navigate(["/devices", device.id.value]);
           this.isDialogDataImporting$.next(false);

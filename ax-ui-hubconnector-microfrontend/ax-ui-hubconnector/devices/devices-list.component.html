@@ -91,12 +91,6 @@
                     </select><span></span>
                 </div>
             </div>
-            <div class="form-group" *ngIf="!(isDialogDataImporting$ | async) && equipmentList.length > 0">
-                <label class="c8y-switch">
-                    <input type="checkbox" id="cumulocityIsDevice" [(ngModel)]="selectedIsDevice">
-                    <span></span> {{'Handle as Cumulocity-Device' | translate}}
-                </label>
-            </div>
             <div class="form-group" *ngIf="equipmentList.length == 0">
                 {{ 'No unimported devices found.' | translate }}
             </div>

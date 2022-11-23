@@ -1,0 +1,42 @@
+<div class="form-group m-b-8 p-t-8">
+  <label>{{ "Linked Filter" | translate }}</label>
+  <label class="c8y-checkbox input-sm p-b-8">
+    <input
+      type="checkbox"
+      [checked]="onlyConnected"
+      (change)="onOnlyConnectedChange($event.target.checked)"
+    />
+    <span></span>
+    <span translate> Only linked</span>
+  </label>
+
+  <label class="c8y-checkbox checkbox-inline input-sm p-b-8">
+    <input
+      type="checkbox"
+      [checked]="onlyDisconnected"
+      (change)="onOnlyDisconnectedChange($event.target.checked)"
+    />
+    <span></span>
+    <span translate> Only unlinked</span>
+  </label>
+</div>
+<div class="data-grid__dropdown__footer d-flex separator-top">
+  <button
+    class="btn btn-default btn-sm m-r-8 flex-grow"
+    (click)="resetFilter()"
+    title="{{ 'Reset' | translate }}"
+    translate
+  >
+    {{ "Reset" | translate }}
+  </button>
+
+  <button
+    class="btn btn-primary btn-sm flex-grow"
+    [disabled]="!onlyConnected && !onlyDisconnected"
+    (click)="applyFilter()"
+    title="{{ 'Apply' | translate }}"
+    translate
+  >
+    {{ "Apply" | translate }}
+  </button>
+</div>

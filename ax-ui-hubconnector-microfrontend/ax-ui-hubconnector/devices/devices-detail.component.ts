@@ -55,13 +55,4 @@ export class DevicesDetailComponent {
         }
     }
 
-    cumulocityDeviceChange(event: any) {
-        if (event.currentTarget.checked) {
-            this.device.c8y_IsDevice = {};
-        } else {
-            // Remove the c8y_IsDevice-Flag to prevent the calculation of assets
-            this.device.c8y_IsDevice = null;
-        }
-    }
-
 }
