@@ -19,6 +19,8 @@ import org.springframework.web.client.RestClientException;
 
 import com.adamos.hubconnector.model.HubConnectorGlobalSettings;
 import com.adamos.hubconnector.model.ImportStatistics;
+import com.adamos.hubconnector.model.SyncTuple;
+import com.adamos.hubconnector.model.exceptions.SynchronizationException;
 import com.adamos.hubconnector.model.hub.EquipmentDTO;
 import com.adamos.hubconnector.services.HubConnectorService;
 import com.adamos.hubconnector.services.HubService;
@@ -30,12 +32,12 @@ public class HubSynchronizationApi {
 
 	@Autowired
 	private HubService hubService;
-	
+
 	@Autowired
 	private HubConnectorService hubConnectorService;
-	
+
 	private static final Logger logger = LoggerFactory.getLogger(HubSynchronizationApi.class);
-	
+
 	@PreAuthorize("hasRole('ROLE_ADAMOS_HUB_ADMIN')")
 	@RequestMapping(value = "/synchronization/toHub/{id}", method = RequestMethod.POST)
 	public ResponseEntity<ManagedObjectRepresentation> connectDeviceToHub(@PathVariable long id) {
@@ -44,7 +46,7 @@ public class HubSynchronizationApi {
 			if (obj != null) {
 				return new ResponseEntity<ManagedObjectRepresentation>(obj, HttpStatus.CREATED);
 			}
-			
+
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		} catch (HttpClientErrorException hcee) {
 			logger.error("Error connecting asset " + id, hcee);
@@ -54,7 +56,7 @@ public class HubSynchronizationApi {
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
-	
+
 	@PreAuthorize("hasRole('ROLE_ADAMOS_HUB_ADMIN')")
 	@RequestMapping(value = "/synchronization/unlink/{id}", method = RequestMethod.POST)
 	public ResponseEntity<?> deleteHubSettings(@PathVariable long id) {
@@ -74,7 +76,8 @@ public class HubSynchronizationApi {
 
 	@PreAuthorize("hasRole('ROLE_ADAMOS_HUB_ADMIN')")
 	@RequestMapping(value = "/synchronization/fromHub/{uuid}", method = RequestMethod.POST)
-	public ResponseEntity<ManagedObjectRepresentation> importHubDevice(@PathVariable String uuid, @RequestParam(defaultValue="", name="isDevice") String isC8yDevice) {
+	public ResponseEntity<ManagedObjectRepresentation> importHubDevice(@PathVariable String uuid,
+			@RequestParam(defaultValue = "", name = "isDevice") String isC8yDevice) {
 		try {
 			boolean isDevice = false;
 			if (Strings.isNullOrEmpty(isC8yDevice)) {
@@ -87,7 +90,7 @@ public class HubSynchronizationApi {
 			if (obj != null) {
 				return new ResponseEntity<ManagedObjectRepresentation>(obj, HttpStatus.CREATED);
 			}
-			
+
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		} catch (HttpClientErrorException hcee) {
 			logger.error("Error importing device " + uuid, hcee);
@@ -97,28 +100,57 @@ public class HubSynchronizationApi {
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
-	
+
+	@PreAuthorize("hasRole('ROLE_ADAMOS_HUB_ADMIN')")
+	@RequestMapping(value = "/synchronization/sync/{uuid}/with/{moId}", method = RequestMethod.POST)
+	public ResponseEntity<SyncTuple> syncHubDeviceWithC8yDevice(@PathVariable String uuid, @PathVariable String moId) {
+		try {
+			SyncTuple tuple = hubService.syncHubDeviceWithC8yDevice(moId, uuid);
+			if (tuple.getAdamosDevice() != null && tuple.getC8yDevice() != null) {
+				return new ResponseEntity<SyncTuple>(tuple, HttpStatus.OK);
+			}
+
+			if (tuple.getAdamosDevice() == null) {
+				logger.error("Could not find ADAMOS Hub Device with uuid " + uuid);
+			} else {
+				logger.error("Could not find Cumulocity IoT Device with id " + moId);
+			}
+
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		} catch (HttpClientErrorException hcee) {
+			logger.error("Error importing device " + uuid, hcee);
+			return new ResponseEntity<>(hcee.getStatusCode());
+		} catch (RestClientException rce) {
+			logger.error("Error importing device " + uuid, rce);
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		} catch (SynchronizationException se) {
+			logger.error(se.getMessage());
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
 	@PreAuthorize("hasRole('ROLE_ADAMOS_HUB_ADMIN')")
 	@RequestMapping(value = "/synchronization/fromHub", method = RequestMethod.POST)
-	public ResponseEntity<ImportStatistics> importAllHubDevices(@RequestParam(name="isDevice") Optional<Boolean> isC8yDevice,
+	public ResponseEntity<ImportStatistics> importAllHubDevices(
+			@RequestParam(name = "isDevice") Optional<Boolean> isC8yDevice,
 			@RequestParam Optional<Boolean> includeHierarchy) {
-		try {	
+		try {
 			boolean isDevice = isC8yDevice.orElseGet(() -> {
 				HubConnectorGlobalSettings globalSettings = hubConnectorService.getGlobalSettings();
 				return globalSettings.getDefaultSyncConfiguration().getHubToAdamos().isC8yIsDevice();
 			});
 			boolean importHierarchy = includeHierarchy.orElse(false);
-			
+
 			ImportStatistics statistics = new ImportStatistics();
-			
-			if(importHierarchy) {
+
+			if (importHierarchy) {
 				statistics = hubService.importHierarchy();
 			}
-			
+
 			List<EquipmentDTO> devices = hubService.getDisconnectedMachineTools();
 			logger.info("Importing devices");
 			for (EquipmentDTO device : devices) {
-				hubService.importHubDevice(device.getUuid(), isDevice);	
+				hubService.importHubDevice(device.getUuid(), isDevice);
 			}
 			logger.info("Imported {} devices", devices.size());
 			statistics.setImportedDevices(devices.size());
@@ -131,11 +163,12 @@ public class HubSynchronizationApi {
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
-	
+
 	@PreAuthorize("hasRole('ROLE_ADAMOS_HUB_ADMIN')")
 	@RequestMapping(value = "/synchronization/resync/{uuid}", method = RequestMethod.POST)
-	public ResponseEntity<ManagedObjectRepresentation> resyncFromHub(@PathVariable String uuid, @RequestParam(value = "source", defaultValue = "hub") String source) {
-		try {	
+	public ResponseEntity<ManagedObjectRepresentation> resyncFromHub(@PathVariable String uuid,
+			@RequestParam(value = "source", defaultValue = "hub") String source) {
+		try {
 			if (hubService.checkAndUpdateDevice(uuid, source.equals("hub"), true)) {
 				ManagedObjectRepresentation device = hubConnectorService.getDeviceByHubUuid(uuid);
 				return new ResponseEntity<ManagedObjectRepresentation>(device, HttpStatus.OK);
