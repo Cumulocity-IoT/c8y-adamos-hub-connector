@@ -743,6 +743,51 @@
                 }
             }
         },
+        "/synchronization/sync/{uuid}/with/{moId}": {
+            "post": {
+                "description": "Link an existing ADAMOS Hub device with an eixsting Cumulocity IoT device. <br>Required permission: ROLE_ADAMOS_HUB_ADMIN",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "uuid",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "path",
+                        "name": "moId",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "$ref": "https://cumulocity.com/api/dist/c8y-oas.json#/components/schemas/managedObject"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/unauthorizedError401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/forbiddenError403"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/notFoundError404"
+                    }
+                }
+            }
+        },
         "/synchronization/fromHub/{uuid}": {
             "post": {
                 "description": "Register a machine from ADAMOS Hub as a device in Cumulocity IoT. <br>Required permission: ROLE_ADAMOS_HUB_ADMIN",
