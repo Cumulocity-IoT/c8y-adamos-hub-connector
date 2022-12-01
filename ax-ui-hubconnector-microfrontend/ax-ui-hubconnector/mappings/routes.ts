@@ -7,11 +7,11 @@ import { MappingsListComponent } from "./mappings-list.component";
 export const routes =
 [
     {
-        path: 'mappings',
+        path: 'hub/mappings',
         component: MappingsListComponent
     },
     {
-        path: 'mappings/:id',
+        path: 'hub/mappings/:id',
         component: MappingsDetailComponent
     }
 ];

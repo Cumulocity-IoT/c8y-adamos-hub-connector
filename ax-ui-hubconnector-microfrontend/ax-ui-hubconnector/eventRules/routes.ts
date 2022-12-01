@@ -6,12 +6,12 @@ import {  EventRulesListComponent } from "./eventRules-list.component";
 export const routes =
 [
     {
-        path: 'eventRules',
-        redirectTo: 'eventRules/fromAdamosHub',
+        path: 'hub/eventRules',
+        redirectTo: 'hub/eventRules/fromAdamosHub',
         pathMatch: 'full'
     },
     {
-        path: 'eventRules/:direction',
+        path: 'hub/eventRules/:direction',
         component: EventRulesListComponent
     }
 ];

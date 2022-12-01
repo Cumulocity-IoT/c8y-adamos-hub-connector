@@ -8,11 +8,11 @@ import { NewDevicesListComponent } from "./new-devices-list.component";
 export const routes =
 [
     {
-        path: 'devices',
+        path: 'hub/devices',
         component: NewDevicesListComponent
     },
     {
-        path: 'devices/:id',
+        path: 'hub/devices/:id',
         component: DevicesDetailComponent
     }
 ];

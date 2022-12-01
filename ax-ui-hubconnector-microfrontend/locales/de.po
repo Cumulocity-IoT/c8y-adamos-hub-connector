@@ -1,0 +1,85 @@
+"Project-Id-Version: c8yui.core\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language: de\n"
+"Language-Team: \n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "ADAMOS Hub Devices"
+msgstr "ADAMOS Hub Geräte"
+
+msgid "Cumulocity IoT Devices"
+msgstr "Cumulocity IoT Geräte"
+
+msgid "Linked"
+msgstr "Verbunden"
+
+msgid "Linking successful"
+msgstr "Synchronisation erfolgreich"
+
+msgid "Disconnected"
+msgstr "Getrennt"
+
+msgid "Events from Hub"
+msgstr "Events vom Hub"
+
+msgid "Only linked"
+msgstr "Nur verbunden"
+
+msgid "Only unlinked"
+msgstr "Nur nicht verbunden"
+
+msgid "Link device"
+msgstr "Gerät verbinden"
+
+msgid "Disconnect device"
+msgstr "Gerät trennen"
+
+msgid "Importing Cumulocity IoT devices..."
+msgstr "Cumulocity IoT Geräte laden..."
+
+msgid "Importing ADAMOS Hub devices..."
+msgstr "ADAMOS Hub Geräte laden..."
+
+msgid "Unlinked Cumulocity IoT Devices"
+msgstr "Nicht verbundene Cumulocity IoT Geräte"
+
+msgid "You are about to disconnect \"{{deviceName}}\" from {{source}}. Do you want to proceed?"
+msgstr "Das Gerät \"{{deviceName}}\" wird von {{source}} getrennt. Möchten Sie fortfahren?"
+
+msgid "You can either create a new device on Cumulocity IoT, or select an existing device which will merge both devices."
+msgstr "Sie können entweder ein neues Gerät auf Cumulocity IoT erstellen oder ein vorhandenes Gerät auswählen, das beide Geräte verbindet."
+
+msgid "You can either create a new device on ADAMOS Hub, or select an existing device which will merge both devices."
+msgstr "Sie können entweder ein neues Gerät auf ADAMOS Hub erstellen oder ein vorhandenes Gerät auswählen, das beide Geräte verbindet."
+
+msgid "Unlinked ADAMOS Hub Devices"
+msgstr "Nicht verbundene ADAMOS Hub Geräte"
+
+msgid "Unlinked Cumulocity IoT Devices"
+msgstr "Nicht verbundene Cumulocity IoT Geräte"
+
+msgid "Link to existing device"
+msgstr "Mit existierendem Gerät verbinden"
+
+msgid "Create new device"
+msgstr "Neues Gerät erstellen"
+
+msgid "Device disconnect successful."
+msgstr "Gerätetrennung erfolgreich."
+
+msgid "Linked ADAMOS Hub device with uuid={{uuid}} → new Cumulocity IoT Device with id={{moId}}"
+msgstr "ADAMOS Hub Gerät uuid={{uuid}} → mit neuem Cumulocity IoT Gerät id={{moId}} verbunden"
+
+msgid "Linked ADAMOS Hub device with uuid={{uuid}} → Cumulocity IoT Device with id={{moId}}"
+msgstr "ADAMOS Hub Gerät uuid={{uuid}} → mit Cumulocity IoT Gerät id={{moId}} verbunden"
+
+msgid "Linked Cumulocity IoT Device with id={{id}} → new ADAMOS Hub device"
+msgstr "Cumulocity IoT Gerät id={{id}} → mit neuem ADAMOS Hub Gerät verbunden"
+
+msgid "Linked Cumulocity IoT Device with id={{moId}} → ADAMOS Hub device with uuid={{uuid}}"
+msgstr "Cumulocity IoT Gerät id={{id}} → mit ADAMOS Hub Gerät uuid={{uuid}} verbunden"

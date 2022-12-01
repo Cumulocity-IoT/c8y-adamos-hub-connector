@@ -12,7 +12,7 @@ import { NewAdamosHubService } from "../../shared/new-adamos-hub.service";
     </div>
 
     <div class="form-group" *ngIf="adamosDevices.length">
-      <label tranlsate>Unlinked ADAMOS Hub Devices</label>
+      <label>{{ "Unlinked ADAMOS Hub Devices" | translate }}</label>
       <div class="c8y-select-wrapper">
         <select
           class="form-control"

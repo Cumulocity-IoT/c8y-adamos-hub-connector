@@ -6,7 +6,7 @@ import { SettingsComponent } from "./settings.component";
 export const routes =
 [
     {
-        path: 'settings',
+        path: 'hub/settings',
         component: SettingsComponent
     }
 ];

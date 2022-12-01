@@ -6,7 +6,7 @@ import { HierarchyTreeComponent } from "./hierarchy-tree.component";
 export const routes =
 [
     {
-        path: 'hierarchy',
+        path: 'hub/hierarchy',
         component: HierarchyTreeComponent
     }
 ];

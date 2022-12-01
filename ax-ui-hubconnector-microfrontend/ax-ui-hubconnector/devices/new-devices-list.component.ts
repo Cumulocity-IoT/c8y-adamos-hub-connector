@@ -14,7 +14,6 @@ import {
   IdentityService,
   IExternalIdentity,
   IManagedObject,
-  InventoryService,
 } from "@c8y/client";
 import { TranslateService } from "@ngx-translate/core";
 import { BsModalService } from "ngx-bootstrap/modal";
@@ -25,6 +24,7 @@ import { LinkedAdamosDeviceFilter } from "./filters/linked-adamos-device-filter.
 import { NewAdamosHubService } from "../shared/new-adamos-hub.service";
 import { LinkDeviceModalComponent } from "./modal/link-device-modal.component";
 import { take } from "rxjs/operators";
+
 
 @Component({
   providers: [DevicesListDatasourceService],
@@ -100,11 +100,12 @@ export class NewDevicesListComponent {
   getDefaultC8yColumns(): Column[] {
     return [
       {
-        name: "id",
-        header: "ID",
-        path: "id",
+        name: "linked",
+        header: "Status",
+        sortable: false,
         filterable: true,
-        gridTrackSize: "0.4fr",
+        filteringFormRendererComponent: LinkedC8yDeviceFilter,
+        gridTrackSize: "1fr",
       },
       {
         name: "name",
@@ -113,11 +114,11 @@ export class NewDevicesListComponent {
         filterable: true,
       },
       {
-        name: "linked",
-        header: "Linked",
-        sortable: false,
+        name: "id",
+        header: "System ID",
+        path: "id",
         filterable: true,
-        filteringFormRendererComponent: LinkedC8yDeviceFilter,
+        gridTrackSize: "0.4fr",
       },
     ];
   }
@@ -125,11 +126,11 @@ export class NewDevicesListComponent {
   getAdamosColumns(): Column[] {
     return [
       {
-        name: "uuid",
-        header: "UUID",
-        path: "uuid",
+        name: "linked",
+        header: "Status",
+        path: "linked",
         filterable: true,
-        gridTrackSize: "1fr",
+        filteringFormRendererComponent: LinkedAdamosDeviceFilter,
       },
       {
         name: "name",
@@ -138,11 +139,11 @@ export class NewDevicesListComponent {
         path: "customerIdentification.name",
       },
       {
-        name: "linked",
-        header: "Linked",
-        path: "linked",
+        name: "uuid",
+        header: "System ID",
+        path: "uuid",
         filterable: true,
-        filteringFormRendererComponent: LinkedAdamosDeviceFilter,
+        gridTrackSize: "1fr",
       },
     ];
   }
@@ -171,12 +172,13 @@ export class NewDevicesListComponent {
         this.activeFilter === "CUMULOCITY_DEVICES"
           ? "ADAMOS Hub"
           : "Cumulocity IoT";
+
       await this.modal.confirm(
         gettext("Disconnect device"),
         this.translateService.instant(
           gettext(
-            `You are about to disconnect "${deviceName}" from ${source}. Do you want to proceed?`
-          )
+            `You are about to disconnect \"{{deviceName}}\" from {{source}}. Do you want to proceed?`
+          ), {deviceName, source}
         ),
         Status.DANGER,
         { ok: gettext("Disconnect"), cancel: gettext("Cancel") }
@@ -213,7 +215,9 @@ export class NewDevicesListComponent {
   }
 
   openLinkDeviceModal(device: IManagedObject | AdamosHubDevice) {
-    const modalRef = this.bsModalService.show(LinkDeviceModalComponent, {});
+    const modalRef = this.bsModalService.show(LinkDeviceModalComponent, {
+      class: "modal-lg",
+    });
     modalRef.content.device = device;
     modalRef.content.setMode(
       has(device, "uuid") ? "AdamosToC8y" : "C8yToAdamos"

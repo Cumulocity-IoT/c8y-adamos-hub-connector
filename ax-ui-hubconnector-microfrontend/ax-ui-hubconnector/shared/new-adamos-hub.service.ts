@@ -40,7 +40,7 @@ export class NewAdamosHubService {
     return this.getEquipment({ disconnected: true });
   }
 
-  async linkHubDevice(uuid: number, isDevice: boolean = true): Promise<any> {
+  async linkHubDevice(uuid: string, isDevice: boolean = true): Promise<any> {
     const url = `${this.hubUrl}/synchronization/fromHub/${uuid}?isDevice=${isDevice}`;
     const response = await this.fc.fetch(url, {
       method: "POST",
@@ -86,5 +86,22 @@ export class NewAdamosHubService {
       error.message = `Status not ok (${response.status})`;
       throw error;
     }
+  }
+
+  async linkExisting(uuid: string, moId: string) {
+    const url = `${this.hubUrl}/synchronization/sync/${uuid}/with/${moId}`;
+    const response = await this.fc.fetch(url, {
+      method: "POST",
+      headers: this.headers,
+    });
+
+    if (response.status !== 200) {
+      const error = new Error();
+      error.message = `Status not ok (${response.status})`;
+      throw error;
+    }
+
+    const data = await response.json();
+    return data;
   }
 }

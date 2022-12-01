@@ -1,33 +1,20 @@
-# Cumulocity widget plugin
+# ADAMOS Hub Connector plugin
 
-This is the Cumulocity module federation plugin. Plugins can be developed like any Cumulocity application, but can be used at runtime by other applications. Therefore, they export an Angular module which can then be imported by any other application. The exports are defined in `package.json`:
+The Cumulocity IoT ADAMOS Hub Connector provides 2-way synchronization of devices between ADAMOS Hub Services and a Cumulocity IoT Tenant. The following functionality is provided:
 
-```
-"exports": [
-  {
-     "name": "Example widget plugin",
-     "module": "WidgetPluginModule",
-     "path": "./widget/widget-plugin.module.ts",
-     "description": "Adds custom widget"
-  }
-]
-```
+* Synchronization between the ADAMOS Hub MDM Services and the Cumulocity IoT Inventory
+* Fetching of product images from the ADAMOS Hub Catalog Service
+* The Cumulocity IoT ADAMOS Hub Connector is based on version 1.0 of the ADAMOS Hub Services.
 
-**How to start**
-Run the command below to scaffold a `widget` plugin.
+* Adds a menu point ADAMOS Hub
+** Devices
+** Events from Hub
+** Settings
 
-```
-c8ycli new <yourPluginName> widget-plugin
-```
+## API Documentation
+The OpenAPI specification of the Connector API is listed here:
+https://github.com/SoftwareAG/c8y-adamos-hub-connector/blob/main/hubconnector-oas.json
 
-As the app.module is a typical Cumuloctiy application, any new plugin can be tested via the CLI:
+_________________
 
-```
-npm start -- --shell cockpit
-```
-
-In the Module Federation terminology, `widget` plugin is called `remote` and the `cokpit` is called `shell`. Modules provided by this `widget` will be loaded by the `cockpit` application at the runtime. This plugin provides a basic custom widget that can be accessed through the `Add widget` menu.
-
-> Note that the `--shell` flag creates a proxy to the cockpit application and provides` WidgetPluginModule` as an `remote` via URL options.
-
-Also deploying needs no special handling and can be simply done via `npm run deploy`. As soon as the application has exports it will be uploaded as a plugin.
+These tools are provided as-is and without warranty or support. They do not constitute part of the Software AG product suite. Users are free to use, fork and modify them, subject to the license agreement. While Software AG welcomes contributions, we cannot guarantee to include every contribution in the master project.

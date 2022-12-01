@@ -47,7 +47,7 @@
     <ng-container *c8yCellRendererDef="let context">
       <a
         *ngIf="context.item.adamos_hub_connectorSettings"
-        [routerLink]="['/devices', context.item.id]"
+        [routerLink]="['/hub/devices', context.item.id]"
         >{{ context.value }}</a
       >
       <span *ngIf="!context.item.adamos_hub_connectorSettings">{{
@@ -59,21 +59,28 @@
     <ng-container *c8yCellRendererDef="let context">
       <span
         ><i
+          title="{{
+            (context.item.adamos_hub_connectorSettings
+              ? 'Linked'
+              : 'Disconnected'
+            ) | translate
+          }}"
           class="{{
             context.item.adamos_hub_connectorSettings
               ? 'text-success'
               : 'text-danger'
           }}"
           c8yIcon="{{
-            context.item.adamos_hub_connectorSettings ? 'link' : 'unlink'
+            context.item.adamos_hub_connectorSettings
+              ? 'data-transfer'
+              : 'unlink'
           }}"
         ></i
       ></span>
       {{
-        (context.item.adamos_hub_connectorSettings
-          ? "Linked with " + context.item.adamos_hub_connectorSettings.uuid
-          : "Disconnected"
-        ) | translate
+        context.item.adamos_hub_connectorSettings
+          ? context.item.adamos_hub_connectorSettings.uuid
+          : "Disconnected" | translate
       }}
     </ng-container>
   </c8y-column>
@@ -100,7 +107,7 @@
       <span
         ><i
           class="{{ context.value ? 'text-success' : 'text-danger' }}"
-          c8yIcon="{{ context.value ? 'link' : 'unlink' }}"
+          c8yIcon="{{ context.value ? 'data-transfer' : 'unlink' }}"
         ></i
       ></span>
       {{ (context.value ? "Linked" : "Disconnected") | translate }}
