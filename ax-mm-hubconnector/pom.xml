@@ -186,7 +186,7 @@
 		<repository>
 			<id>cumulocity</id>
 			<layout>default</layout>
-			<url>http://download.cumulocity.com/maven/repository</url>
+			<url>https://download.cumulocity.com/maven/repository</url>
 		</repository>
 		<repository>
 			<id>central</id>
@@ -202,7 +202,7 @@
 	<pluginRepositories>
 		<pluginRepository>
 			<id>public</id>
-			<url>http://download.cumulocity.com/maven/repository</url>
+			<url>https://download.cumulocity.com/maven/repository</url>
 		</pluginRepository>
 		<pluginRepository>
 			<id>central</id>
