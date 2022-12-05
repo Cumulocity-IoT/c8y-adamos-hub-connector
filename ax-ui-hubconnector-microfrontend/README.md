@@ -11,6 +11,19 @@ The Cumulocity IoT ADAMOS Hub Connector provides 2-way synchronization of device
 ** Events from Hub
 ** Settings
 
+## Micro Frontend Plugin
+
+This project was created using the widget-plugin template from c8ycli. This means you can build and deploy this project as plugin and add it's functionality to any existing app on the tenant. As the current plugin approach does not support internationalization, the package.json is still configured to build as standalone app and not as plugin. If you want to revert that, simply change
+```
+    "isPackage": false,
+    "noAppSwitcher": false,
+``` 
+to
+```
+    "isPackage": true,
+    "noAppSwitcher": true,
+``` 
+
 ## API Documentation
 The OpenAPI specification of the Connector API is listed here:
 https://github.com/SoftwareAG/c8y-adamos-hub-connector/blob/main/hubconnector-oas.json
