@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.adamos.hubconnector.CustomProperties;
+import com.adamos.hubconnector.model.Environment;
 import com.adamos.hubconnector.model.GlobalSyncConfiguration;
 import com.adamos.hubconnector.model.HubConnectorGlobalSettings;
 import com.adamos.hubconnector.model.HubConnectorSettings;
@@ -58,6 +59,9 @@ public class HubConnectorService {
 					break;
 				case "defaultSyncConfiguration":
 					settings.setDefaultSyncConfiguration(mapper.readValue(o.getValue(), GlobalSyncConfiguration.class));			
+					break;
+				case "environment":
+					settings.setEnvironment(mapper.readValue(o.getValue(), Environment.class));
 					break;
 				case "version":
 					settings.setVersion(o.getValue());
@@ -118,6 +122,12 @@ public class HubConnectorService {
 			optionDefaultSyncConfiguration.setKey("defaultSyncConfiguration");
 			optionDefaultSyncConfiguration.setValue(mapper.writeValueAsString(globalSettings.getDefaultSyncConfiguration()));
 			options.add(optionDefaultSyncConfiguration);
+
+			OptionRepresentation optionEnvironment = new OptionRepresentation();
+			optionEnvironment.setCategory(CustomProperties.HUB_GLOBAL_SETTINGS);
+			optionEnvironment.setKey("environment");
+			optionEnvironment.setValue(mapper.writeValueAsString(globalSettings.getEnvironment()));
+			options.add(optionEnvironment);
 
 			OptionRepresentation optionVersion = new OptionRepresentation();
 			optionVersion.setCategory(CustomProperties.HUB_GLOBAL_SETTINGS);

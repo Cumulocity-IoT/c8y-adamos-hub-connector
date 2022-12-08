@@ -19,10 +19,11 @@ export class SettingsComponent {
     currentLang: string;
     mappings: any;
     selectedMapping: any;
+    hubURLs = ['https://adamos-hub.dev', 'https://adamos-hub.com'];
+
     isLoading$: BehaviorSubject<boolean> = new BehaviorSubject(false);
     
     constructor(translateService: TranslateService, private hubService: AdamosHubService) {
-        // _ annotation to mark this string as translatable string.
         this.informationText = _('Ooops! It seems that there are no settings to display.');
         this.currentLang = translateService.currentLang;
 
