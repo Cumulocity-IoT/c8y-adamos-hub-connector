@@ -6,6 +6,7 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -22,6 +23,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.stereotype.Service;
@@ -95,6 +97,7 @@ public class HubService {
 
 	public HubService(RestTemplateBuilder restTemplateBuilder) {
 		restTemplate = restTemplateBuilder.build();
+		restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
 	}
 
 	public HubConnectorSettings getConnectorSettingsByObj(ManagedObjectRepresentation obj) {
@@ -221,40 +224,38 @@ public class HubService {
 	}
 
 	public <T, R> T restToHub(URI uri, HttpMethod method, R obj, Class<T> clazz) throws RestClientException {
-		restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-		HttpEntity<R> request = new HttpEntity<R>(obj,
-				authTokenService.getHeaderBearerToken(org.springframework.http.MediaType.APPLICATION_JSON));
+		HttpEntity<R> request = new HttpEntity<R>(obj, constructHubHeader());
 		T response = restTemplate.exchange(uri, method, request, clazz).getBody();
 		return response;
 	}
 
 	private boolean deleteInHub(URI uri) throws RestClientException {
-		restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-		HttpEntity<Void> request = new HttpEntity<Void>(
-				authTokenService.getHeaderBearerToken(org.springframework.http.MediaType.APPLICATION_JSON));
+		HttpEntity<Void> request = new HttpEntity<Void>(constructHubHeader());
 		ResponseEntity<Void> response = restTemplate.exchange(uri, HttpMethod.DELETE, request, Void.class);
 
 		return (response.getStatusCode() == HttpStatus.OK);
 	}
 
-	private <T> T getHubResponse(String serviceUri, String token, String path, MultiValueMap<String, String> params,
-			ParameterizedTypeReference<T> paramTypeRef) throws RestClientException {
+	private <T> T queryHub(String serviceUri, String token, String path, MultiValueMap<String, String> params, ParameterizedTypeReference<T> paramTypeRef) throws RestClientException {
 		URI requestUrl = getUrlString(serviceUri, path, params);
 
-		HttpHeaders requestHeaders = new HttpHeaders();
-		requestHeaders.add("Authorization", "Bearer " + token);
-		HttpEntity<T> requestEntity = new HttpEntity<T>(null, requestHeaders);
-		ResponseEntity<T> response = restTemplate.exchange(
-				requestUrl,
-				HttpMethod.GET,
-				requestEntity,
-				paramTypeRef);
+		HttpEntity<T> requestEntity = new HttpEntity<T>(null, constructHubHeader());
+		ResponseEntity<T> response = restTemplate.exchange(requestUrl, HttpMethod.GET, requestEntity, paramTypeRef);
 		if (response.getStatusCode().is2xxSuccessful()) {
 			return response.getBody();
 		}
 
 		return null;
 	}
+	
+    public HttpHeaders constructHubHeader() {
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+        httpHeaders.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+        httpHeaders.add("Authorization", "Bearer " + authTokenService.getToken().getAccessToken());
+
+        return httpHeaders;
+    }
 	
 	private EquipmentDTO updateEquipment(EquipmentDTO device) {
 		URI uriPut = UriComponentsBuilder.fromUriString(appProperties.getAdamosMdmServiceEndpoint())
@@ -757,25 +758,25 @@ public class HubService {
 	}
 
 	public EquipmentDTO getMachineTool(String uuid) {
-		return getHubResponse(appProperties.getAdamosMdmServiceEndpoint(), authTokenService.getToken().getAccessToken(),
+		return queryHub(appProperties.getAdamosMdmServiceEndpoint(), authTokenService.getToken().getAccessToken(),
 				"assets/machines/" + uuid, new LinkedMultiValueMap<>(), new ParameterizedTypeReference<EquipmentDTO>() {
 				});
 	}
 
 	public SiteDTO getPlant(String uuid) {
-		return getHubResponse(appProperties.getAdamosMdmServiceEndpoint(), authTokenService.getToken().getAccessToken(),
+		return queryHub(appProperties.getAdamosMdmServiceEndpoint(), authTokenService.getToken().getAccessToken(),
 				"assets/sites/" + uuid, new LinkedMultiValueMap<>(), new ParameterizedTypeReference<SiteDTO>() {
 				});
 	}
 
 	public AreaDTO getArea(String uuid) {
-		return getHubResponse(appProperties.getAdamosMdmServiceEndpoint(), authTokenService.getToken().getAccessToken(),
+		return queryHub(appProperties.getAdamosMdmServiceEndpoint(), authTokenService.getToken().getAccessToken(),
 				"assets/areas/" + uuid, new LinkedMultiValueMap<>(), new ParameterizedTypeReference<AreaDTO>() {
 				});
 	}
 
 	public ProductionLineDTO getProductionLine(String uuid) {
-		return getHubResponse(appProperties.getAdamosMdmServiceEndpoint(), authTokenService.getToken().getAccessToken(),
+		return queryHub(appProperties.getAdamosMdmServiceEndpoint(), authTokenService.getToken().getAccessToken(),
 				"assets/workCenters/productionLines/" + uuid, new LinkedMultiValueMap<>(),
 				new ParameterizedTypeReference<ProductionLineDTO>() {
 				});
@@ -785,7 +786,7 @@ public class HubService {
 		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
 		params.add("page", Integer.toString(page));
 		params.add("size", Integer.toString(size));
-		RestResponsePage<T> result = getHubResponse(appProperties.getAdamosMdmServiceEndpoint(),
+		RestResponsePage<T> result = queryHub(appProperties.getAdamosMdmServiceEndpoint(),
 				authTokenService.getToken().getAccessToken(), path, params,
 				new ParameterizedTypeReference<RestResponsePage<T>>() {
 				});
@@ -835,7 +836,7 @@ public class HubService {
 		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
 		params.add("imageSize", "THUMBNAIL");
 		// params.add("lang", "en");
-		return getHubResponse(appProperties.getAdamosCatalogServiceEndpoint(),
+		return queryHub(appProperties.getAdamosCatalogServiceEndpoint(),
 				authTokenService.getToken().getAccessToken(), "catalogEntries/" + oemId + "/Iimages", params,
 				new ParameterizedTypeReference<List<ImageDTO>>() {
 				});
