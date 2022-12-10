@@ -30,6 +30,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -224,28 +225,70 @@ public class HubService {
 	}
 
 	public <T, R> T restToHub(URI uri, HttpMethod method, R obj, Class<T> clazz) throws RestClientException {
-		HttpEntity<R> request = new HttpEntity<R>(obj, constructHubHeader());
-		T response = restTemplate.exchange(uri, method, request, clazz).getBody();
-		return response;
+		int retries = 0;
+		while(true) {
+			try {
+				HttpEntity<R> request = new HttpEntity<R>(obj, constructHubHeader());
+				T response = restTemplate.exchange(uri, method, request, clazz).getBody();
+				return response;
+			} catch (RestClientResponseException rcre) {
+				int statusCode = rcre.getRawStatusCode();
+				if(retries<5 && (statusCode>=500 || statusCode==429)) {
+					retries++;
+					try {
+						Thread.sleep(500);
+					} catch (InterruptedException e) {}
+				} else {
+					throw rcre;
+				}
+			}
+				
+		}
 	}
 
 	private boolean deleteInHub(URI uri) throws RestClientException {
-		HttpEntity<Void> request = new HttpEntity<Void>(constructHubHeader());
-		ResponseEntity<Void> response = restTemplate.exchange(uri, HttpMethod.DELETE, request, Void.class);
-
-		return (response.getStatusCode() == HttpStatus.OK);
+		int retries = 0;
+		while(true) {
+			try {
+				HttpEntity<Void> request = new HttpEntity<Void>(constructHubHeader());
+				ResponseEntity<Void> response = restTemplate.exchange(uri, HttpMethod.DELETE, request, Void.class);
+				return (response.getStatusCode() == HttpStatus.OK);
+			} catch (RestClientResponseException rcre) {
+				int statusCode = rcre.getRawStatusCode();
+				if(retries<5 && (statusCode>=500 || statusCode==429)) {
+					retries++;
+					try {
+						Thread.sleep(500);
+					} catch (InterruptedException e) {}
+				} else {
+					throw rcre;
+				}
+			}				
+		}		
 	}
 
 	private <T> T queryHub(String serviceUri, String token, String path, MultiValueMap<String, String> params, ParameterizedTypeReference<T> paramTypeRef) throws RestClientException {
-		URI requestUrl = getUrlString(serviceUri, path, params);
-
-		HttpEntity<T> requestEntity = new HttpEntity<T>(null, constructHubHeader());
-		ResponseEntity<T> response = restTemplate.exchange(requestUrl, HttpMethod.GET, requestEntity, paramTypeRef);
-		if (response.getStatusCode().is2xxSuccessful()) {
-			return response.getBody();
-		}
-
-		return null;
+		int retries = 0;
+		while(true) {
+			try {
+				HttpEntity<T> requestEntity = new HttpEntity<T>(null, constructHubHeader());
+				ResponseEntity<T> response = restTemplate.exchange(getUrlString(serviceUri, path, params), HttpMethod.GET, requestEntity, paramTypeRef);
+				if (response.getStatusCode().is2xxSuccessful()) {
+					return response.getBody();
+				}
+				return null;
+			} catch (RestClientResponseException rcre) {
+				int statusCode = rcre.getRawStatusCode();
+				if(retries<5 && (statusCode>=500 || statusCode==429)) {
+					retries++;
+					try {
+						Thread.sleep(500);
+					} catch (InterruptedException e) {}
+				} else {
+					throw rcre;
+				}
+			}				
+		}	
 	}
 	
     public HttpHeaders constructHubHeader() {
