@@ -389,12 +389,6 @@ public class HubService {
 		});
 	}
 
-	public OAuth2AppToken getOAuth2AppToken() {
-		OAuth2Token currentToken = authTokenService.getToken();
-
-		return new OAuth2AppToken(currentToken);
-	}
-
 	private URI getUrlString(String serviceUri, String path, MultiValueMap<String, String> params) {
 		return UriComponentsBuilder.fromHttpUrl(serviceUri)
 				.path(path)
