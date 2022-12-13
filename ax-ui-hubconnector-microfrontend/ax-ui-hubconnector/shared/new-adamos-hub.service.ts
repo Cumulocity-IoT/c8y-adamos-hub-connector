@@ -1,5 +1,9 @@
 import { Injectable } from "@angular/core";
 import { FetchClient, IManagedObject } from "@c8y/client";
+import {
+  AdamosMappingResponse,
+  IEventMapping,
+} from "ax-ui-hubconnector/eventRules/event-rules-to-hub.component";
 import { isArray } from "lodash-es";
 import { AdamosHubDevice } from "./model/AdamosDevice";
 
@@ -103,5 +107,44 @@ export class NewAdamosHubService {
 
     const data = await response.json();
     return data;
+  }
+
+  mappings: IEventMapping[] = [
+    {
+      c8yEventType: "c8y_Position",
+      c8yFragments: ["foo", "bar"],
+      c8yDevices: ["2318011", "2318012", "44297003"],
+      enabled: false,
+      name: "Test",
+      id: "d982b35d-b932-432c-8cda-a604daac9137",
+      adamosEventType: "adamos:runstate:event:resource:stackLight:*:update:1",
+    },
+    {
+      c8yEventType: "c8y_Whatever",
+      c8yFragments: ["hans", "wurst"],
+      c8yDevices: ["2318011", "2318012", "44297003"],
+      enabled: false,
+      name: "Test2",
+      id: "d982b35d-b932-432c-8cda-a604daac9138",
+      adamosEventType: "adamos:runstate:event:resource:stackLight:*:update:2",
+    },
+  ];
+
+  async getMappingRules(): Promise<AdamosMappingResponse> {
+    return this.delay(2000).then(() =>
+      Promise.resolve({
+        direction: "TO_HUB",
+        rules: this.mappings
+      })
+    );
+  }
+
+  private delay(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  updateMappingRules(response: AdamosMappingResponse): Promise<void> {
+    this.mappings = response.rules;
+    return this.delay(2000);
   }
 }

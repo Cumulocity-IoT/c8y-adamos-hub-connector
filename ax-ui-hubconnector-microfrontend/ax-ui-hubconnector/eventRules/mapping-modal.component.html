@@ -1,0 +1,131 @@
+<div class="modal-header">
+  <h3>{{ "Mapping" | translate }}</h3>
+</div>
+<div class="modal-body">
+  <div class="card-block">
+    <div class="row">
+      <div class="form-group">
+        <label>Name</label>
+        <input
+          type="text"
+          autofocus
+          [(ngModel)]="ui.name"
+          placeholder="{{ 'Human readable rule name' | translate }}"
+          class="form-control"
+        />
+      </div>
+    </div>
+    <div class="row">
+      <div class="form-group">
+        <label>Cumulocity event type</label>
+        <input
+          type="text"
+          autofocus
+          [(ngModel)]="ui.c8yEventType"
+          placeholder="{{ 'e.g. c8y_Position' | translate }}"
+          class="form-control"
+        />
+      </div>
+    </div>
+    <div class="row">
+      <div class="form-group">
+        <label>Cumulocity devices (optional)</label>
+        <c8y-typeahead
+          container="body"
+          (onSearch)="setPipe($event)"
+          placeholder="Select"
+          [hideNew]="true"
+        >
+          <c8y-li
+            *c8yFor="let device of devices; loadMore: 'auto'; pipe: filterPipe"
+            class="p-l-8 p-r-8 c8y-list__item--link interact"
+          >
+            <c8y-li-checkbox
+              (click)="$event.stopPropagation()"
+              [selected]="isChecked(device)"
+              (change)="onChangeCheckbox(device, $event.target.checked)"
+            ></c8y-li-checkbox>
+            #{{ device.id }}
+            <c8y-highlight
+              [text]="device.name"
+              [pattern]="pattern"
+            ></c8y-highlight>
+          </c8y-li>
+        </c8y-typeahead>
+      </div>
+    </div>
+    <div class="row">
+      <div class="form-group">
+        <label>ADAMOS Hub event code</label>
+        <input
+          type="text"
+          autofocus
+          [(ngModel)]="ui.adamosEventType"
+          placeholder="{{
+            'adamos:<namespace>:event:resource:<event-resource>:*:<event-action>:<event-version>'
+          }}"
+          class="form-control"
+        />
+      </div>
+    </div>
+    <div class="row">
+      <div class="form-group">
+        <label>Cumulocity event fragments</label>
+        <div
+          *ngFor="
+            let fragment of ui.c8yFragments;
+            let first = first;
+            let last = last
+          "
+          class="input-group m-b-8"
+        >
+          <input
+            type="text"
+            autofocus
+            [(ngModel)]="fragment.value"
+            placeholder="{{ '' | translate }}"
+            class="form-control"
+          />
+          <div class="input-group-btn">
+            <button
+              *ngIf="last"
+              title="Add"
+              class="btn btn-clean text-primary"
+              (click)="addFragment()"
+            >
+              <i c8yIcon="plus-circle" class="text-success"></i>
+            </button>
+            <button
+              *ngIf="ui.c8yFragments.length > 1"
+              title="Remove"
+              class="btn btn-clean text-primary"
+              (click)="removeFragment(fragment)"
+            >
+              <i c8yIcon="minus-circle" class="text-danger"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="form-group">
+        <label class="c8y-switch">
+          <input type="checkbox" id="syncToHub" [(ngModel)]="ui.enabled" />
+          <span></span> {{ "Rule active" | translate }}
+        </label>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal-footer">
+  <button class="btn btn-default" (click)="onEditCancelClick()">
+    {{ "Cancel" | translate }}
+  </button>
+  <button
+    class="btn btn-primary"
+    [disabled]="!mandatoryFieldsFilled()"
+    (click)="onEditOKClick()"
+  >
+    {{ "OK" | translate }}
+  </button>
+</div>
