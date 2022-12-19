@@ -7,18 +7,21 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.adamos.hubconnector.model.OAuth2AppToken;
-import com.adamos.hubconnector.services.HubService;
+import com.adamos.hubconnector.model.OAuth2Token;
+import com.adamos.hubconnector.services.AuthTokenService;
 
 @RestController
 public class HubTokenApi {
 
 	@Autowired
-	private HubService hubService;
+	private AuthTokenService authTokenService;
 
+	
 	@PreAuthorize("hasRole('ROLE_ADAMOS_HUB_ADMIN')")
     @RequestMapping(value = "/token", method = RequestMethod.GET) 
 	public OAuth2AppToken getToken() {
-		return hubService.getOAuth2AppToken();		
+		OAuth2Token currentToken = authTokenService.getToken();
+		return new OAuth2AppToken(currentToken);
 	}
 	
 }
