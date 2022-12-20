@@ -3,7 +3,14 @@ package com.adamos.hubconnector.services;
 import java.io.IOException;
 import java.net.URI;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,18 +25,20 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.svenson.util.JSONPathUtil;
 
 import com.adamos.hubconnector.CustomProperties;
 import com.adamos.hubconnector.HubProperties;
 import com.adamos.hubconnector.model.HubConnectorResponse;
+import com.adamos.hubconnector.model.events.AdamosEventAttribute;
 import com.adamos.hubconnector.model.events.AdamosEventData;
 import com.adamos.hubconnector.model.events.AdamosEventProcessor;
 import com.adamos.hubconnector.model.events.EventDirection;
+import com.adamos.hubconnector.model.events.EventMapping;
 import com.adamos.hubconnector.model.events.EventRule;
 import com.adamos.hubconnector.model.events.EventRules;
 import com.adamos.hubconnector.model.hub.EquipmentDTO;
 import com.cumulocity.microservice.subscription.service.MicroserviceSubscriptionsService;
-import com.cumulocity.model.idtype.GId;
 import com.cumulocity.rest.representation.event.EventRepresentation;
 import com.cumulocity.rest.representation.inventory.ManagedObjectRepresentation;
 import com.cumulocity.sdk.client.Param;
@@ -41,7 +50,6 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
-import com.google.common.base.Strings;
 import com.jayway.jsonpath.DocumentContext;
 
 @Service
@@ -55,7 +63,7 @@ public class EventRulesService {
 			return "revert";
 		}
 	}, "true");
-	
+
 	@Autowired
 	private HubProperties appProperties;
 
@@ -70,22 +78,24 @@ public class EventRulesService {
 
 	@Autowired
 	private HubConnectorService hubConnectorService;
-	
-    @Autowired
-    private MicroserviceSubscriptionsService service;
-	
+
+	@Autowired
+	private MicroserviceSubscriptionsService service;
+
 	@Autowired
 	private AuthTokenService authTokenService;
-    
+
 	@Value("${C8Y.tenant}")
-    private String tenant;	
+	private String tenant;
 
 	private RestTemplate restTemplate;
-	
+
+	private Map<String, Date> lastUpdateDatesCache = new HashMap<>();
+
 	public EventRulesService(RestTemplateBuilder restTemplateBuilder) {
 		restTemplate = restTemplateBuilder.build();
 	}
-	
+
 	/**
 	 * Inbound event processing (Hub -> C8Y)
 	 * 
@@ -96,9 +106,10 @@ public class EventRulesService {
 	 * @throws JsonMappingException
 	 * @throws IOException
 	 */
-	public boolean consumeHubMessage(String message, DocumentContext jsonContext) throws JsonParseException, JsonMappingException, IOException {
+	public boolean consumeHubMessage(String message, DocumentContext jsonContext)
+			throws JsonParseException, JsonMappingException, IOException {
 		appLogger.debug("Consuming message: " + message);
-		EventRules rulesFromHub = getEventRules(EventDirection.FROM_HUB);
+		EventRules rulesFromHub = getEventRules();
 		for (EventRule rule : rulesFromHub.getRules()) {
 			if (rule.doesMatch(message) && rule.isEnabled()) {
 				AdamosEventProcessor adamosEventProcessor = (AdamosEventProcessor) rule.getEventProcessor();
@@ -106,89 +117,167 @@ public class EventRulesService {
 				adamosEventProcessor.setCumulocityService(cumulocityService);
 				adamosEventProcessor.processMessage(message, rule);
 			}
-		}	
+		}
 		return false;
 	}
-	
-	/**
-	 * Outbound event processing
-	 * TODO replace with Notification API 2.0 once available
-	 */
+
 	@Scheduled(fixedRate = 60000)
-	public void consumeC8YEvent() {
+	public void startListenersForEventMappings() {
 		service.runForEachTenant(() -> {
 			appLogger.info("Scheduled Hub event processing for tenant " + service.getTenant());
-			Iterable<EventRepresentation> events = eventApi.getEventsByFilter(
-					new EventFilter().byType("AdamosHubEvent").byFromDate(Date.from(Instant.now().minusSeconds(60)))).get(2000, revertParam).allPages();
-			for (EventRepresentation e : events) {
-				GId source = e.getSource().getId();
-				ManagedObjectRepresentation mo = inventoryApi.get(source);
-				if (mo.hasProperty(CustomProperties.HUB_DATA)) {
-					EquipmentDTO hubData = new HubConnectorResponse<EquipmentDTO>(mo, CustomProperties.HUB_DATA, EquipmentDTO.class).getData();
-					AdamosEventData eventData = e.get(AdamosEventData.class);
-					eventData.setTimestampCreated(e.getDateTime());
-					eventData.setReferenceObjectType("adamos:masterdata:type:machine:1");
-					eventData.setReferenceObjectId(hubData.getUuid());
-					URI uriService = UriComponentsBuilder.fromUriString(appProperties.getAdamosEventServiceEndpoint()).path("event").build().toUri();
-					appLogger.info("Posting to " + uriService + ": " + eventData);
-					restToHub(uriService, HttpMethod.POST, eventData, AdamosEventData.class);
-				} else {
-					appLogger.warn("Cannot send event to Adamos Hub. Device " + source + " is not synchronized to Adamos Hub");
+
+			EventMapping[] mappings = getEventMapping();
+			if (mappings == null || mappings.length == 0) {
+				return;
+			}
+
+			final List<ManagedObjectRepresentation> hubDevices = cumulocityService
+					.getManagedObjectsByFragmentType("adamos_hub_data");
+
+			Stream<EventMapping> mappingStream = Arrays.asList(mappings).stream();
+			// remove deleted mapping entries from cache
+			for (String cachedId : lastUpdateDatesCache.keySet()) {
+				if (mappingStream.filter(m -> m.getId().equals(cachedId)).findFirst().orElse(null) == null) {
+					lastUpdateDatesCache.remove(cachedId);
+				}
+			}
+
+			for (EventMapping mapping : mappings) {
+				if (mapping.isEnabled()) {
+					ArrayList<String> relevantHubDeviceIds = mapping.getC8yDevices();
+					// filter for c8y devices which were configured in the mapping via c8yDevices
+					List<ManagedObjectRepresentation> devicesFromMapping = relevantHubDeviceIds.isEmpty() ? hubDevices
+							: hubDevices.stream().filter(d -> relevantHubDeviceIds.contains(d.getId().toString()))
+									.collect(Collectors.toList());
+					listenForMapping(mapping, devicesFromMapping);
 				}
 			}
 		});
 	}
-	
-	private <T,R> T restToHub(URI uri, HttpMethod method, R obj, Class<T> clazz) throws RestClientException {
+
+	public void listenForMapping(EventMapping mapping, List<ManagedObjectRepresentation> selectedDevices) {
+		appLogger.info("Started Hub event listener for mapping " + mapping.getName());
+		Date fromDate = Date.from(Instant.now().minusSeconds(60));
+		if (lastUpdateDatesCache.containsKey(mapping.getId())) {
+			fromDate = lastUpdateDatesCache.get(mapping.getId());
+		}
+
+		ArrayList<EventRepresentation> allEvents = new ArrayList<>();
+		for (ManagedObjectRepresentation device : selectedDevices) {
+			Iterable<EventRepresentation> events = eventApi.getEventsByFilter(
+					new EventFilter().bySource(device.getId()).byType(mapping.getC8yEventType()).byFromDate(fromDate))
+					.get(2000, revertParam).allPages();
+			events.forEach(allEvents::add);
+		}
+
+		List<AdamosEventData> mappedEvents = allEvents.stream().map(e -> mapToAdamosEvent(e, mapping, selectedDevices))
+				.collect(Collectors.toList());
+
+		// update cache with latest date of all events we fetched
+		Date latestDate = allEvents.stream().map(e -> e.getCreationDateTime().toDate()).max(Date::compareTo).get();
+		lastUpdateDatesCache.put(mapping.getId(), latestDate);
+
+		mappedEvents.forEach(e -> this.createAdamosEvent(e));
+	}
+
+	private void createAdamosEvent(AdamosEventData eventData) {
+		URI uriService = UriComponentsBuilder.fromUriString(appProperties.getAdamosEventServiceEndpoint())
+				.path("event").build().toUri();
+		appLogger.info("Posting to " + uriService + ": " + eventData);
+		restToHub(uriService, HttpMethod.POST, eventData, AdamosEventData.class);
+	}
+
+	private AdamosEventData mapToAdamosEvent(EventRepresentation event, EventMapping mapping,
+			List<ManagedObjectRepresentation> selectedDevices) {
+
+		// get the hub uuid from the source device of the event
+		ManagedObjectRepresentation device = selectedDevices.stream()
+				.filter(d -> d.getId().toString().equals(event.getSource().getId().toString())).findFirst().get();
+		EquipmentDTO hubData = new HubConnectorResponse<EquipmentDTO>(device, CustomProperties.HUB_DATA,
+				EquipmentDTO.class).getData();
+		String hubUuid = hubData.getUuid();
+
+		AdamosEventData eventData = event.get(AdamosEventData.class);
+		eventData.setTimestampCreated(event.getDateTime());
+		eventData.setReferenceObjectType(mapping.getAdamosEventType());
+		eventData.setReferenceObjectId(hubUuid);
+
+		if (!mapping.getC8yFragments().isEmpty()) {
+			List<Object> attributes = mapping.getC8yFragments().stream()
+					.map(fragment -> mapToAdamosEventAttribute(fragment, event)).collect(Collectors.toList());
+			eventData.setAttributes(attributes.toArray(new AdamosEventAttribute[attributes.size()]));
+		}
+
+		return eventData;
+	}
+
+	private List<Object> mapToAdamosEventAttribute(String c8yPropertyPath, EventRepresentation event) {
+		JSONPathUtil util = new JSONPathUtil();
+		Object value = util.getPropertyPath(event, c8yPropertyPath);
+		// value could potentially also be an array
+		return Arrays.asList(value);
+	}
+
+	private <T, R> T restToHub(URI uri, HttpMethod method, R obj, Class<T> clazz) throws RestClientException {
 		restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-		HttpEntity<R> request = new HttpEntity<R>(obj, authTokenService.getHeaderBearerToken(org.springframework.http.MediaType.APPLICATION_JSON));
-		T response =  restTemplate.exchange(uri, method, request, clazz).getBody();
+		HttpEntity<R> request = new HttpEntity<R>(obj,
+				authTokenService.getHeaderBearerToken(org.springframework.http.MediaType.APPLICATION_JSON));
+		T response = restTemplate.exchange(uri, method, request, clazz).getBody();
 		return response;
 	}
-	
-	private String getTypeByDirection(EventDirection direction) {
-		switch (direction) {
-			case FROM_HUB:
-				return CustomProperties.HUB_EVENTRULES_FROM_HUB_OBJECT_TYPE;
-			case TO_HUB:
-				return CustomProperties.HUB_EVENTRULES_TO_HUB_OBJECT_TYPE;
-			default:
-				return "";
+
+	public EventRules getEventRules() {
+		ManagedObjectRepresentation obj = cumulocityService
+				.getManagedObjectByFragmentType(CustomProperties.HUB_EVENTRULES_FROM_HUB_OBJECT_TYPE);
+		if (obj != null) {
+			return mapper.convertValue(obj.getProperty(CustomProperties.HUB_EVENTRULES_FROM_HUB_OBJECT_TYPE),
+					EventRules.class);
 		}
-	}
-	
-	public EventRules getEventRules(EventDirection direction) {
-		String directionType = getTypeByDirection(direction);
-		
-		if (!Strings.isNullOrEmpty(directionType)) {
-			ManagedObjectRepresentation obj = cumulocityService.getManagedObjectByFragmentType(directionType);
-			if (obj != null && obj.hasProperty(directionType)) {
-				return mapper.convertValue(obj.getProperty(directionType), EventRules.class);
-			}
-		}
-		
+
 		return null;
 	}
-	
+
+	public EventMapping[] getEventMapping() {
+		ManagedObjectRepresentation obj = cumulocityService
+				.getManagedObjectByFragmentType(CustomProperties.HUB_EVENTRULES_TO_HUB_OBJECT_TYPE);
+		if (obj != null) {
+			return mapper.convertValue(obj.getProperty(CustomProperties.HUB_EVENTRULES_TO_HUB_OBJECT_TYPE),
+					EventMapping[].class);
+		}
+		return null;
+	}
+
 	public void storeEventRules(EventRules eventRules) {
-		String directionType = getTypeByDirection(eventRules.getDirection());
-		
-		if (!Strings.isNullOrEmpty(directionType)) {
-			ManagedObjectRepresentation obj = cumulocityService.getManagedObjectByFragmentType(directionType);
-			if (obj != null && obj.hasProperty(directionType)) {
-				obj.setProperty(directionType, eventRules);
-				obj.setLastUpdatedDateTime(null);
-				service.runForTenant(tenant, () -> {
-					inventoryApi.update(obj);
-				});
-			}		
+		ManagedObjectRepresentation obj = cumulocityService
+				.getManagedObjectByFragmentType(CustomProperties.HUB_EVENTRULES_FROM_HUB_OBJECT_TYPE);
+		if (obj != null) {
+			obj.setProperty(CustomProperties.HUB_EVENTRULES_FROM_HUB_OBJECT_TYPE, eventRules);
+			obj.setLastUpdatedDateTime(null);
+			service.runForTenant(tenant, () -> {
+				inventoryApi.update(obj);
+			});
+		}
+
+	}
+
+	public void updateEventMapping(EventMapping[] eventMapping) {
+		ManagedObjectRepresentation obj = cumulocityService
+				.getManagedObjectByFragmentType(CustomProperties.HUB_EVENTRULES_TO_HUB_OBJECT_TYPE);
+		if (obj != null) {
+			obj.setProperty(CustomProperties.HUB_EVENTRULES_TO_HUB_OBJECT_TYPE, eventMapping);
+			obj.setLastUpdatedDateTime(null);
+			service.runForTenant(tenant, () -> {
+				inventoryApi.update(obj);
+			});
 		}
 	}
-	
+
 	public void initMappingRules() {
 		// Triggered on Microservice Subscription
-		cumulocityService.createManagedObjectIfNotExists(CustomProperties.HUB_EVENTRULES_FROM_HUB_OBJECT_TYPE, new EventRules(EventDirection.FROM_HUB));
-		cumulocityService.createManagedObjectIfNotExists(CustomProperties.HUB_EVENTRULES_TO_HUB_OBJECT_TYPE, new EventRules(EventDirection.TO_HUB));
+		cumulocityService.createManagedObjectIfNotExists(CustomProperties.HUB_EVENTRULES_FROM_HUB_OBJECT_TYPE,
+				new EventRules(EventDirection.FROM_HUB));
+		cumulocityService.createManagedObjectIfNotExists(CustomProperties.HUB_EVENTRULES_TO_HUB_OBJECT_TYPE,
+				new EventMapping[0]);
 	}
-	
+
 }
