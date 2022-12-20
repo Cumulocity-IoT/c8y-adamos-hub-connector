@@ -134,9 +134,11 @@ public class EventRulesService {
 				if (mapping.isEnabled()) {
 					ArrayList<String> relevantHubDeviceIds = mapping.getC8yDevices();
 					// filter for c8y devices which were configured in the mapping via c8yDevices
-					List<ManagedObjectRepresentation> devicesFromMapping = relevantHubDeviceIds.isEmpty() ? hubDevices
-							: hubDevices.stream().filter(d -> relevantHubDeviceIds.contains(d.getId().toString()))
-									.collect(Collectors.toList());
+					List<ManagedObjectRepresentation> devicesFromMapping = (relevantHubDeviceIds == null
+							|| relevantHubDeviceIds.isEmpty()) ? hubDevices
+									: hubDevices.stream()
+											.filter(d -> relevantHubDeviceIds.contains(d.getId().getValue()))
+											.collect(Collectors.toList());
 					listenForMapping(mapping, devicesFromMapping);
 				}
 			}
@@ -160,12 +162,16 @@ public class EventRulesService {
 
 		List<AdamosEventData> mappedEvents = allEvents.stream().map(e -> mapToAdamosEvent(e, mapping, selectedDevices))
 				.collect(Collectors.toList());
+		if (!mappedEvents.isEmpty()) {
+			// update cache with latest date of all events we fetched
+			Date latestDate = allEvents.stream().map(e -> e.getCreationDateTime().toDate()).max(Date::compareTo).get();
+			lastUpdateDatesCache.put(mapping.getId(), latestDate);
 
-		// update cache with latest date of all events we fetched
-		Date latestDate = allEvents.stream().map(e -> e.getCreationDateTime().toDate()).max(Date::compareTo).get();
-		lastUpdateDatesCache.put(mapping.getId(), latestDate);
-
-		mappedEvents.forEach(e -> this.createAdamosEvent(e));
+			mappedEvents.forEach(e -> this.createAdamosEvent(e));
+			appLogger.info("Hub event listener " + mapping.getName() + " finished. Converted " + mappedEvents.size() + " events.");
+		} else {
+			appLogger.info("Hub event listener " + mapping.getName() + " finished with nothing to do");
+		}
 	}
 
 	private void createAdamosEvent(AdamosEventData eventData) {
@@ -181,14 +187,15 @@ public class EventRulesService {
 
 		// get the hub uuid from the source device of the event
 		ManagedObjectRepresentation device = selectedDevices.stream()
-				.filter(d -> d.getId().toString().equals(event.getSource().getId().toString())).findFirst().get();
+				.filter(d -> d.getId().getValue().equals(event.getSource().getId().getValue())).findFirst().get();
 		EquipmentDTO hubData = new HubConnectorResponse<EquipmentDTO>(device, CustomProperties.HUB_DATA,
 				EquipmentDTO.class).getData();
 		String hubUuid = hubData.getUuid();
 
-		AdamosEventData eventData = event.get(AdamosEventData.class);
-		eventData.setTimestampCreated(event.getDateTime());
-		eventData.setReferenceObjectType(mapping.getAdamosEventType());
+		AdamosEventData eventData = new AdamosEventData();
+		eventData.setTimestampCreated(event.getCreationDateTime());
+		eventData.setEventCode(mapping.getAdamosEventType());
+		eventData.setReferenceObjectType("adamos:masterdata:type:machine:1");
 		eventData.setReferenceObjectId(hubUuid);
 
 		if (!mapping.getC8yFragments().isEmpty()) {
