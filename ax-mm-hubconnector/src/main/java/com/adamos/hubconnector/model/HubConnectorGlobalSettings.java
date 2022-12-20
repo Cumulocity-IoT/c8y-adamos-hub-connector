@@ -44,19 +44,7 @@ public class HubConnectorGlobalSettings {
 	@JsonProperty("defaultSyncConfiguration")
 	private GlobalSyncConfiguration defaultSyncConfiguration;
 
-	private Environment environment;
-
-	@JsonProperty("environment")
-	@JSONProperty("environment")
-	public void setEnvironment(Environment value) {
-		this.environment = value;
-	}
-
-	@JsonProperty("environment")
-	@JSONProperty("environment")
-	public Environment getEnvironment() {
-		return this.environment;
-	}
+	private String environment = null;
 
 	private String version = null;
 
@@ -70,27 +58,26 @@ public class HubConnectorGlobalSettings {
 			defaultSyncConfiguration.getHubToAdamos().setUpdate(false);
 			defaultSyncConfiguration.getHubToAdamos().setDelete(false);
 			oAuth2Credentials = new OAuth2Credentials();
-			environment = new Environment();
 		}
 	}
 
 	public String getOAuthEndpoint() {
-		return getEnvironment().getUrl() + "/auth-service/token";
+		return environment + "/auth-service/token";
 	}
 
 	public String getAdamosMdmServiceEndpoint() {
-		return getEnvironment().getUrl() + "/mdm-service/v1/";
+		return environment + "/mdm-service/v1/";
 	}
 
 	public String getAdamosCatalogServiceEndpoint() {
-		return getEnvironment().getUrl() + "/catalog-service/v1/";
+		return environment + "/catalog-service/v1/";
 	}
 
 	public String getAdamosEventServiceEndpoint() {
-		return getEnvironment().getUrl() + "/event-service/v1/";
+		return environment + "/event-service/v1/";
 	}
 
 	public String getAdamosAmqpEndpoint() {
-		return "amqps://messaging." + getEnvironment().getUrl();
+		return "amqps://messaging." + environment;
 	}
 }
