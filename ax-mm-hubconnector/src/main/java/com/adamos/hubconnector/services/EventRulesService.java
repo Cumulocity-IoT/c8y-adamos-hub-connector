@@ -149,7 +149,8 @@ public class EventRulesService {
 		appLogger.info("Started Hub event listener for mapping " + mapping.getName());
 		Date fromDate = Date.from(Instant.now().minusSeconds(60));
 		if (lastUpdateDatesCache.containsKey(mapping.getId())) {
-			fromDate = lastUpdateDatesCache.get(mapping.getId());
+			// add 1 ms to prevent the latest event to be fetched again on the next poll
+			fromDate = Date.from(lastUpdateDatesCache.get(mapping.getId()).toInstant().plusMillis(1));
 		}
 
 		ArrayList<EventRepresentation> allEvents = new ArrayList<>();
