@@ -35,7 +35,6 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.adamos.hubconnector.CustomProperties;
-import com.adamos.hubconnector.HubProperties;
 import com.adamos.hubconnector.model.HubConnectorResponse;
 import com.adamos.hubconnector.model.HubConnectorSettings;
 import com.adamos.hubconnector.model.HubConnectorThumbnail;
@@ -72,9 +71,6 @@ import c8y.Hardware;
 public class HubService {
 	private static final Logger LOGGER = LoggerFactory.getLogger(HubService.class);
 	private static final ObjectMapper mapper = new ObjectMapper().registerModule(new JodaModule());
-
-	@Autowired
-	private HubProperties appProperties;
 
 	@Autowired
 	InventoryApi inventoryApi;
@@ -301,7 +297,8 @@ public class HubService {
     }
 	
 	private EquipmentDTO updateEquipment(EquipmentDTO device) {
-		URI uriPut = UriComponentsBuilder.fromUriString(appProperties.getAdamosMdmServiceEndpoint())
+		URI uriPut = UriComponentsBuilder
+				.fromUriString(hubConnectorService.getGlobalSettings().getAdamosMdmServiceEndpoint())
 				.path("assets/machines/" + device.getUuid())
 				.build().toUri();
 
@@ -365,7 +362,8 @@ public class HubService {
 		ci.setName(name);
 		device.setCustomerIdentification(ci);
 
-		URI uriService = UriComponentsBuilder.fromUriString(appProperties.getAdamosMdmServiceEndpoint())
+		URI uriService = UriComponentsBuilder
+				.fromUriString(hubConnectorService.getGlobalSettings().getAdamosMdmServiceEndpoint())
 				.path("assets/machines").build().toUri();
 		device = restToHub(uriService, HttpMethod.POST, device, EquipmentDTO.class);
 
@@ -489,7 +487,8 @@ public class HubService {
 	}
 
 	public boolean deleteDeviceInHub(String uuid) {
-		URI uriDeleteDevice = UriComponentsBuilder.fromUriString(appProperties.getAdamosMdmServiceEndpoint())
+		URI uriDeleteDevice = UriComponentsBuilder
+				.fromUriString(hubConnectorService.getGlobalSettings().getAdamosMdmServiceEndpoint())
 				.path("assets/machines/" + uuid)
 				.build().toUri();
 
@@ -801,25 +800,25 @@ public class HubService {
 	}
 
 	public EquipmentDTO getMachineTool(String uuid) {
-		return queryHub(appProperties.getAdamosMdmServiceEndpoint(), authTokenService.getToken().getAccessToken(),
+		return queryHub(hubConnectorService.getGlobalSettings().getAdamosMdmServiceEndpoint(), authTokenService.getToken().getAccessToken(),
 				"assets/machines/" + uuid, new LinkedMultiValueMap<>(), new ParameterizedTypeReference<EquipmentDTO>() {
 				});
 	}
 
 	public SiteDTO getPlant(String uuid) {
-		return queryHub(appProperties.getAdamosMdmServiceEndpoint(), authTokenService.getToken().getAccessToken(),
+		return queryHub(hubConnectorService.getGlobalSettings().getAdamosMdmServiceEndpoint(), authTokenService.getToken().getAccessToken(),
 				"assets/sites/" + uuid, new LinkedMultiValueMap<>(), new ParameterizedTypeReference<SiteDTO>() {
 				});
 	}
 
 	public AreaDTO getArea(String uuid) {
-		return queryHub(appProperties.getAdamosMdmServiceEndpoint(), authTokenService.getToken().getAccessToken(),
+		return queryHub(hubConnectorService.getGlobalSettings().getAdamosMdmServiceEndpoint(), authTokenService.getToken().getAccessToken(),
 				"assets/areas/" + uuid, new LinkedMultiValueMap<>(), new ParameterizedTypeReference<AreaDTO>() {
 				});
 	}
 
 	public ProductionLineDTO getProductionLine(String uuid) {
-		return queryHub(appProperties.getAdamosMdmServiceEndpoint(), authTokenService.getToken().getAccessToken(),
+		return queryHub(hubConnectorService.getGlobalSettings().getAdamosMdmServiceEndpoint(), authTokenService.getToken().getAccessToken(),
 				"assets/workCenters/productionLines/" + uuid, new LinkedMultiValueMap<>(),
 				new ParameterizedTypeReference<ProductionLineDTO>() {
 				});
@@ -829,7 +828,7 @@ public class HubService {
 		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
 		params.add("page", Integer.toString(page));
 		params.add("size", Integer.toString(size));
-		RestResponsePage<T> result = queryHub(appProperties.getAdamosMdmServiceEndpoint(),
+		RestResponsePage<T> result = queryHub(hubConnectorService.getGlobalSettings().getAdamosMdmServiceEndpoint(),
 				authTokenService.getToken().getAccessToken(), path, params,
 				new ParameterizedTypeReference<RestResponsePage<T>>() {
 				});
@@ -868,7 +867,8 @@ public class HubService {
 	}
 
 	public EquipmentDTO updateMachineTool(EquipmentDTO data) {
-		URI uriAddManufacturer = UriComponentsBuilder.fromUriString(appProperties.getAdamosMdmServiceEndpoint())
+		URI uriAddManufacturer = UriComponentsBuilder
+				.fromUriString(hubConnectorService.getGlobalSettings().getAdamosMdmServiceEndpoint())
 				.path("assets/machines/" + data.getUuid())
 				.build().toUri();
 
@@ -879,7 +879,7 @@ public class HubService {
 		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
 		params.add("imageSize", "THUMBNAIL");
 		// params.add("lang", "en");
-		return queryHub(appProperties.getAdamosCatalogServiceEndpoint(),
+		return queryHub(hubConnectorService.getGlobalSettings().getAdamosCatalogServiceEndpoint(),
 				authTokenService.getToken().getAccessToken(), "catalogEntries/" + oemId + "/Iimages", params,
 				new ParameterizedTypeReference<List<ImageDTO>>() {
 				});

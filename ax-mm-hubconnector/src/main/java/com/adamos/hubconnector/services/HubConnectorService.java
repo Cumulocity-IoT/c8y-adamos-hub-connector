@@ -59,6 +59,9 @@ public class HubConnectorService {
 				case "defaultSyncConfiguration":
 					settings.setDefaultSyncConfiguration(mapper.readValue(o.getValue(), GlobalSyncConfiguration.class));			
 					break;
+				case "environment":
+					settings.setEnvironment(o.getValue());
+					break;
 				case "version":
 					settings.setVersion(o.getValue());
 					break;
@@ -118,6 +121,12 @@ public class HubConnectorService {
 			optionDefaultSyncConfiguration.setKey("defaultSyncConfiguration");
 			optionDefaultSyncConfiguration.setValue(mapper.writeValueAsString(globalSettings.getDefaultSyncConfiguration()));
 			options.add(optionDefaultSyncConfiguration);
+
+			OptionRepresentation optionEnvironment = new OptionRepresentation();
+			optionEnvironment.setCategory(CustomProperties.HUB_GLOBAL_SETTINGS);
+			optionEnvironment.setKey("environment");
+			optionEnvironment.setValue(globalSettings.getEnvironment());
+			options.add(optionEnvironment);
 
 			OptionRepresentation optionVersion = new OptionRepresentation();
 			optionVersion.setCategory(CustomProperties.HUB_GLOBAL_SETTINGS);

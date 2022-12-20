@@ -14,13 +14,13 @@ import lombok.NoArgsConstructor;
 public class HubConnectorGlobalSettings {
 
 	private OAuth2Credentials oAuth2Credentials;
-	
+
 	@JsonProperty("oAuth2Credentials")
 	@JSONProperty("oAuth2Credentials")
 	public void setOAuth2Credentials(OAuth2Credentials value) {
 		this.oAuth2Credentials = value;
 	}
-	
+
 	@JsonProperty("oAuth2Credentials")
 	@JSONProperty("oAuth2Credentials")
 	public OAuth2Credentials getOAuth2Credentials() {
@@ -28,25 +28,26 @@ public class HubConnectorGlobalSettings {
 	}
 
 	private OAuth2Credentials amqpCredentials;
-	
+
 	@JsonProperty("amqpCredentials")
 	@JSONProperty("amqpCredentials")
 	public void setAmqpCredentials(OAuth2Credentials value) {
 		this.amqpCredentials = value;
 	}
-	
+
 	@JsonProperty("amqpCredentials")
 	@JSONProperty("amqpCredentials")
 	public OAuth2Credentials getAmqpCredentials() {
 		return this.amqpCredentials;
 	}
 
-	
 	@JsonProperty("defaultSyncConfiguration")
 	private GlobalSyncConfiguration defaultSyncConfiguration;
-	
+
+	private String environment = null;
+
 	private String version = null;
-	
+
 	public HubConnectorGlobalSettings(boolean init) {
 		if (init) {
 			defaultSyncConfiguration = new GlobalSyncConfiguration();
@@ -59,5 +60,24 @@ public class HubConnectorGlobalSettings {
 			oAuth2Credentials = new OAuth2Credentials();
 		}
 	}
-	
+
+	public String getOAuthEndpoint() {
+		return environment + "/auth-service/token";
+	}
+
+	public String getAdamosMdmServiceEndpoint() {
+		return environment + "/mdm-service/v1/";
+	}
+
+	public String getAdamosCatalogServiceEndpoint() {
+		return environment + "/catalog-service/v1/";
+	}
+
+	public String getAdamosEventServiceEndpoint() {
+		return environment + "/event-service/v1/";
+	}
+
+	public String getAdamosAmqpEndpoint() {
+		return "amqps://messaging." + environment;
+	}
 }

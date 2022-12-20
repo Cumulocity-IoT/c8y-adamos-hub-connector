@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.adamos.hubconnector.CustomProperties;
-import com.adamos.hubconnector.HubProperties;
 import com.adamos.hubconnector.model.HubConnectorResponse;
 import com.adamos.hubconnector.model.events.AdamosEventData;
 import com.adamos.hubconnector.model.events.AdamosEventProcessor;
@@ -50,9 +49,6 @@ public class EventRulesService {
 			return "revert";
 		}
 	}, "true");
-	
-	@Autowired
-	private HubProperties appProperties;
 
 	@Autowired
 	private InventoryApi inventoryApi;
@@ -74,7 +70,7 @@ public class EventRulesService {
     private MicroserviceSubscriptionsService service;
 	
 	@Value("${C8Y.tenant}")
-    private String tenant;	
+	private String tenant;
 
 	public EventRulesService() {}
 	
@@ -88,7 +84,8 @@ public class EventRulesService {
 	 * @throws JsonMappingException
 	 * @throws IOException
 	 */
-	public boolean consumeHubMessage(String message, DocumentContext jsonContext) throws JsonParseException, JsonMappingException, IOException {
+	public boolean consumeHubMessage(String message, DocumentContext jsonContext)
+			throws JsonParseException, JsonMappingException, IOException {
 		appLogger.debug("Consuming message: " + message);
 		EventRules rulesFromHub = getEventRules(EventDirection.FROM_HUB);
 		for (EventRule rule : rulesFromHub.getRules()) {
@@ -98,10 +95,10 @@ public class EventRulesService {
 				adamosEventProcessor.setCumulocityService(cumulocityService);
 				adamosEventProcessor.processMessage(message, rule);
 			}
-		}	
+		}
 		return false;
 	}
-	
+
 	/**
 	 * Outbound event processing
 	 * TODO replace with Notification API 2.0 once available
@@ -111,21 +108,26 @@ public class EventRulesService {
 		service.runForEachTenant(() -> {
 			appLogger.info("Scheduled Hub event processing for tenant " + service.getTenant());
 			Iterable<EventRepresentation> events = eventApi.getEventsByFilter(
-					new EventFilter().byType("AdamosHubEvent").byFromDate(Date.from(Instant.now().minusSeconds(60)))).get(2000, revertParam).allPages();
+					new EventFilter().byType("AdamosHubEvent").byFromDate(Date.from(Instant.now().minusSeconds(60))))
+					.get(2000, revertParam).allPages();
 			for (EventRepresentation e : events) {
 				GId source = e.getSource().getId();
 				ManagedObjectRepresentation mo = inventoryApi.get(source);
 				if (mo.hasProperty(CustomProperties.HUB_DATA)) {
-					EquipmentDTO hubData = new HubConnectorResponse<EquipmentDTO>(mo, CustomProperties.HUB_DATA, EquipmentDTO.class).getData();
+					EquipmentDTO hubData = new HubConnectorResponse<EquipmentDTO>(mo, CustomProperties.HUB_DATA,
+							EquipmentDTO.class).getData();
 					AdamosEventData eventData = e.get(AdamosEventData.class);
 					eventData.setTimestampCreated(e.getDateTime());
 					eventData.setReferenceObjectType("adamos:masterdata:type:machine:1");
 					eventData.setReferenceObjectId(hubData.getUuid());
-					URI uriService = UriComponentsBuilder.fromUriString(appProperties.getAdamosEventServiceEndpoint()).path("event").build().toUri();
+					URI uriService = UriComponentsBuilder
+							.fromUriString(hubConnectorService.getGlobalSettings().getAdamosEventServiceEndpoint())
+							.path("event").build().toUri();
 					appLogger.info("Posting to " + uriService + ": " + eventData);
 					hubService.restToHub(uriService, HttpMethod.POST, eventData, AdamosEventData.class);
 				} else {
-					appLogger.warn("Cannot send event to Adamos Hub. Device " + source + " is not synchronized to Adamos Hub");
+					appLogger.warn(
+							"Cannot send event to Adamos Hub. Device " + source + " is not synchronized to Adamos Hub");
 				}
 			}
 		});
@@ -141,23 +143,23 @@ public class EventRulesService {
 				return "";
 		}
 	}
-	
+
 	public EventRules getEventRules(EventDirection direction) {
 		String directionType = getTypeByDirection(direction);
-		
+
 		if (!Strings.isNullOrEmpty(directionType)) {
 			ManagedObjectRepresentation obj = cumulocityService.getManagedObjectByFragmentType(directionType);
 			if (obj != null && obj.hasProperty(directionType)) {
 				return mapper.convertValue(obj.getProperty(directionType), EventRules.class);
 			}
 		}
-		
+
 		return null;
 	}
-	
+
 	public void storeEventRules(EventRules eventRules) {
 		String directionType = getTypeByDirection(eventRules.getDirection());
-		
+
 		if (!Strings.isNullOrEmpty(directionType)) {
 			ManagedObjectRepresentation obj = cumulocityService.getManagedObjectByFragmentType(directionType);
 			if (obj != null && obj.hasProperty(directionType)) {
@@ -166,14 +168,16 @@ public class EventRulesService {
 				service.runForTenant(tenant, () -> {
 					inventoryApi.update(obj);
 				});
-			}		
+			}
 		}
 	}
-	
+
 	public void initMappingRules() {
 		// Triggered on Microservice Subscription
-		cumulocityService.createManagedObjectIfNotExists(CustomProperties.HUB_EVENTRULES_FROM_HUB_OBJECT_TYPE, new EventRules(EventDirection.FROM_HUB));
-		cumulocityService.createManagedObjectIfNotExists(CustomProperties.HUB_EVENTRULES_TO_HUB_OBJECT_TYPE, new EventRules(EventDirection.TO_HUB));
+		cumulocityService.createManagedObjectIfNotExists(CustomProperties.HUB_EVENTRULES_FROM_HUB_OBJECT_TYPE,
+				new EventRules(EventDirection.FROM_HUB));
+		cumulocityService.createManagedObjectIfNotExists(CustomProperties.HUB_EVENTRULES_TO_HUB_OBJECT_TYPE,
+				new EventRules(EventDirection.TO_HUB));
 	}
-	
+
 }
