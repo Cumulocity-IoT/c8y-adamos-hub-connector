@@ -1,7 +1,6 @@
 package com.adamos.hubconnector.services;
 
 import java.net.URI;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -157,15 +156,5 @@ public class AuthTokenService {
         }
         return getCurrentToken();
     }
-
-    public HttpHeaders getHeaderBearerToken(MediaType contentType) {
-        HttpHeaders httpHeaders = new HttpHeaders();
-
-        httpHeaders.setContentType(contentType);
-        httpHeaders.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
-        httpHeaders.add("Authorization", "Bearer " + getToken().getAccessToken());
-
-        return httpHeaders;
-    }
-
+   
 }

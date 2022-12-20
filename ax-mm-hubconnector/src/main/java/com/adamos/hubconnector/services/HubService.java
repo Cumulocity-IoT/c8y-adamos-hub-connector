@@ -6,6 +6,7 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -18,41 +19,40 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.adamos.hubconnector.CustomProperties;
-import com.adamos.hubconnector.model.MappingConfiguration;
-import com.adamos.hubconnector.model.OAuth2AppToken;
-import com.adamos.hubconnector.model.OAuth2Token;
-import com.adamos.hubconnector.model.RestResponsePage;
-import com.adamos.hubconnector.model.SyncTuple;
-import com.adamos.hubconnector.model.exceptions.SynchronizationException;
 import com.adamos.hubconnector.model.HubConnectorResponse;
 import com.adamos.hubconnector.model.HubConnectorSettings;
 import com.adamos.hubconnector.model.HubConnectorThumbnail;
 import com.adamos.hubconnector.model.ImportStatistics;
+import com.adamos.hubconnector.model.MappingConfiguration;
+import com.adamos.hubconnector.model.RestResponsePage;
+import com.adamos.hubconnector.model.SyncTuple;
+import com.adamos.hubconnector.model.exceptions.SynchronizationException;
 import com.adamos.hubconnector.model.hub.CustomerIdentificationDTO;
+import com.adamos.hubconnector.model.hub.EquipmentDTO;
 import com.adamos.hubconnector.model.hub.ImageDTO;
 import com.adamos.hubconnector.model.hub.MDMObjectDTO;
-import com.adamos.hubconnector.model.hub.EquipmentDTO;
-import com.adamos.hubconnector.model.hub.ManufacturerIdentificationDTO;
 import com.adamos.hubconnector.model.hub.ManufacturerDTO;
+import com.adamos.hubconnector.model.hub.ManufacturerIdentificationDTO;
 import com.adamos.hubconnector.model.hub.TreeDTO;
 import com.adamos.hubconnector.model.hub.hierarchy.AreaDTO;
-import com.adamos.hubconnector.model.hub.hierarchy.SiteDTO;
 import com.adamos.hubconnector.model.hub.hierarchy.ProductionLineDTO;
+import com.adamos.hubconnector.model.hub.hierarchy.SiteDTO;
 import com.cumulocity.microservice.subscription.service.MicroserviceSubscriptionsService;
 import com.cumulocity.model.idtype.GId;
 import com.cumulocity.rest.representation.identity.ExternalIDRepresentation;
@@ -94,6 +94,7 @@ public class HubService {
 
 	public HubService(RestTemplateBuilder restTemplateBuilder) {
 		restTemplate = restTemplateBuilder.build();
+		restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
 	}
 
 	public HubConnectorSettings getConnectorSettingsByObj(ManagedObjectRepresentation obj) {
@@ -219,23 +220,82 @@ public class HubService {
 		});
 	}
 
-	private <T, R> T restToHub(URI uri, HttpMethod method, R obj, Class<T> clazz) throws RestClientException {
-		restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-		HttpEntity<R> request = new HttpEntity<R>(obj,
-				authTokenService.getHeaderBearerToken(org.springframework.http.MediaType.APPLICATION_JSON));
-		T response = restTemplate.exchange(uri, method, request, clazz).getBody();
-		return response;
+	public <T, R> T restToHub(URI uri, HttpMethod method, R obj, Class<T> clazz) throws RestClientException {
+		int retries = 0;
+		while(true) {
+			try {
+				HttpEntity<R> request = new HttpEntity<R>(obj, constructHubHeader());
+				T response = restTemplate.exchange(uri, method, request, clazz).getBody();
+				return response;
+			} catch (RestClientResponseException rcre) {
+				int statusCode = rcre.getRawStatusCode();
+				if(retries<5 && (statusCode>=500 || statusCode==429)) {
+					retries++;
+					try {
+						Thread.sleep(500);
+					} catch (InterruptedException e) {}
+				} else {
+					throw rcre;
+				}
+			}
+				
+		}
 	}
 
 	private boolean deleteInHub(URI uri) throws RestClientException {
-		restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-		HttpEntity<Void> request = new HttpEntity<Void>(
-				authTokenService.getHeaderBearerToken(org.springframework.http.MediaType.APPLICATION_JSON));
-		ResponseEntity<Void> response = restTemplate.exchange(uri, HttpMethod.DELETE, request, Void.class);
-
-		return (response.getStatusCode() == HttpStatus.OK);
+		int retries = 0;
+		while(true) {
+			try {
+				HttpEntity<Void> request = new HttpEntity<Void>(constructHubHeader());
+				ResponseEntity<Void> response = restTemplate.exchange(uri, HttpMethod.DELETE, request, Void.class);
+				return (response.getStatusCode() == HttpStatus.OK);
+			} catch (RestClientResponseException rcre) {
+				int statusCode = rcre.getRawStatusCode();
+				if(retries<5 && (statusCode>=500 || statusCode==429)) {
+					retries++;
+					try {
+						Thread.sleep(500);
+					} catch (InterruptedException e) {}
+				} else {
+					throw rcre;
+				}
+			}				
+		}		
 	}
 
+	private <T> T queryHub(String serviceUri, String token, String path, MultiValueMap<String, String> params, ParameterizedTypeReference<T> paramTypeRef) throws RestClientException {
+		int retries = 0;
+		while(true) {
+			try {
+				HttpEntity<T> requestEntity = new HttpEntity<T>(null, constructHubHeader());
+				ResponseEntity<T> response = restTemplate.exchange(getUrlString(serviceUri, path, params), HttpMethod.GET, requestEntity, paramTypeRef);
+				if (response.getStatusCode().is2xxSuccessful()) {
+					return response.getBody();
+				}
+				return null;
+			} catch (RestClientResponseException rcre) {
+				int statusCode = rcre.getRawStatusCode();
+				if(retries<5 && (statusCode>=500 || statusCode==429)) {
+					retries++;
+					try {
+						Thread.sleep(500);
+					} catch (InterruptedException e) {}
+				} else {
+					throw rcre;
+				}
+			}				
+		}	
+	}
+	
+    public HttpHeaders constructHubHeader() {
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+        httpHeaders.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+        httpHeaders.add("Authorization", "Bearer " + authTokenService.getToken().getAccessToken());
+
+        return httpHeaders;
+    }
+	
 	private EquipmentDTO updateEquipment(EquipmentDTO device) {
 		URI uriPut = UriComponentsBuilder
 				.fromUriString(hubConnectorService.getGlobalSettings().getAdamosMdmServiceEndpoint())
@@ -387,54 +447,11 @@ public class HubService {
 		});
 	}
 
-	public OAuth2AppToken getOAuth2AppToken() {
-		OAuth2Token currentToken = authTokenService.getToken();
-
-		return new OAuth2AppToken(currentToken);
-	}
-
 	private URI getUrlString(String serviceUri, String path, MultiValueMap<String, String> params) {
 		return UriComponentsBuilder.fromHttpUrl(serviceUri)
 				.path(path)
 				.queryParams(params)
 				.build().encode().toUri();
-	}
-
-	private <T> Page<T> getHubPageResponse(String serviceUri, String token, String path,
-			MultiValueMap<String, String> params, ParameterizedTypeReference<Page<T>> paramTypeRef)
-			throws RestClientException {
-		URI requestUrl = getUrlString(serviceUri, path, params);
-
-		HttpHeaders requestHeaders = new HttpHeaders();
-		requestHeaders.add("Authorization", "Bearer " + token);
-		HttpEntity<Page<T>> requestEntity = new HttpEntity<Page<T>>(null, requestHeaders);
-		ResponseEntity<Page<T>> response = restTemplate.exchange(requestUrl, HttpMethod.GET, requestEntity,
-				paramTypeRef);
-
-		if (response.getStatusCode().is2xxSuccessful()) {
-			return response.getBody();
-		}
-
-		return null;
-	}
-
-	private <T> T getHubResponse(String serviceUri, String token, String path, MultiValueMap<String, String> params,
-			ParameterizedTypeReference<T> paramTypeRef) throws RestClientException {
-		URI requestUrl = getUrlString(serviceUri, path, params);
-
-		HttpHeaders requestHeaders = new HttpHeaders();
-		requestHeaders.add("Authorization", "Bearer " + token);
-		HttpEntity<T> requestEntity = new HttpEntity<T>(null, requestHeaders);
-		ResponseEntity<T> response = restTemplate.exchange(
-				requestUrl,
-				HttpMethod.GET,
-				requestEntity,
-				paramTypeRef);
-		if (response.getStatusCode().is2xxSuccessful()) {
-			return response.getBody();
-		}
-
-		return null;
 	}
 
 	public boolean checkAndUpdateDevice(String uuid, boolean isFromHub, boolean isForceImageUpdate) {
@@ -783,29 +800,25 @@ public class HubService {
 	}
 
 	public EquipmentDTO getMachineTool(String uuid) {
-		return getHubResponse(hubConnectorService.getGlobalSettings().getAdamosMdmServiceEndpoint(),
-				authTokenService.getToken().getAccessToken(),
+		return queryHub(hubConnectorService.getGlobalSettings().getAdamosMdmServiceEndpoint(), authTokenService.getToken().getAccessToken(),
 				"assets/machines/" + uuid, new LinkedMultiValueMap<>(), new ParameterizedTypeReference<EquipmentDTO>() {
 				});
 	}
 
 	public SiteDTO getPlant(String uuid) {
-		return getHubResponse(hubConnectorService.getGlobalSettings().getAdamosMdmServiceEndpoint(),
-				authTokenService.getToken().getAccessToken(),
+		return queryHub(hubConnectorService.getGlobalSettings().getAdamosMdmServiceEndpoint(), authTokenService.getToken().getAccessToken(),
 				"assets/sites/" + uuid, new LinkedMultiValueMap<>(), new ParameterizedTypeReference<SiteDTO>() {
 				});
 	}
 
 	public AreaDTO getArea(String uuid) {
-		return getHubResponse(hubConnectorService.getGlobalSettings().getAdamosMdmServiceEndpoint(),
-				authTokenService.getToken().getAccessToken(),
+		return queryHub(hubConnectorService.getGlobalSettings().getAdamosMdmServiceEndpoint(), authTokenService.getToken().getAccessToken(),
 				"assets/areas/" + uuid, new LinkedMultiValueMap<>(), new ParameterizedTypeReference<AreaDTO>() {
 				});
 	}
 
 	public ProductionLineDTO getProductionLine(String uuid) {
-		return getHubResponse(hubConnectorService.getGlobalSettings().getAdamosMdmServiceEndpoint(),
-				authTokenService.getToken().getAccessToken(),
+		return queryHub(hubConnectorService.getGlobalSettings().getAdamosMdmServiceEndpoint(), authTokenService.getToken().getAccessToken(),
 				"assets/workCenters/productionLines/" + uuid, new LinkedMultiValueMap<>(),
 				new ParameterizedTypeReference<ProductionLineDTO>() {
 				});
@@ -815,8 +828,7 @@ public class HubService {
 		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
 		params.add("page", Integer.toString(page));
 		params.add("size", Integer.toString(size));
-		RestResponsePage<T> result = getHubResponse(
-				hubConnectorService.getGlobalSettings().getAdamosMdmServiceEndpoint(),
+		RestResponsePage<T> result = queryHub(hubConnectorService.getGlobalSettings().getAdamosMdmServiceEndpoint(),
 				authTokenService.getToken().getAccessToken(), path, params,
 				new ParameterizedTypeReference<RestResponsePage<T>>() {
 				});
@@ -867,7 +879,7 @@ public class HubService {
 		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
 		params.add("imageSize", "THUMBNAIL");
 		// params.add("lang", "en");
-		return getHubResponse(hubConnectorService.getGlobalSettings().getAdamosCatalogServiceEndpoint(),
+		return queryHub(hubConnectorService.getGlobalSettings().getAdamosCatalogServiceEndpoint(),
 				authTokenService.getToken().getAccessToken(), "catalogEntries/" + oemId + "/Iimages", params,
 				new ParameterizedTypeReference<List<ImageDTO>>() {
 				});

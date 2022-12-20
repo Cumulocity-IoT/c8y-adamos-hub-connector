@@ -58,8 +58,8 @@
       "globalTitle": "ADAMOS Hub Connector",
       "requiredPlatformVersion": "1015.0",
       "tabsHorizontal": true,
-      "isPackage": false,
-      "noAppSwitcher": false,
+      "isPackage": true,
+      "noAppSwitcher": true,
       "package": "plugin",
       "exports": [
         {

@@ -9,14 +9,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.adamos.hubconnector.CustomProperties;
@@ -68,20 +63,17 @@ public class EventRulesService {
 	private HubConnectorService hubConnectorService;
 
 	@Autowired
-	private MicroserviceSubscriptionsService service;
+	private HubService hubService;
 
-	@Autowired
-	private AuthTokenService authTokenService;
-
+	
+    @Autowired
+    private MicroserviceSubscriptionsService service;
+	
 	@Value("${C8Y.tenant}")
 	private String tenant;
 
-	private RestTemplate restTemplate;
-
-	public EventRulesService(RestTemplateBuilder restTemplateBuilder) {
-		restTemplate = restTemplateBuilder.build();
-	}
-
+	public EventRulesService() {}
+	
 	/**
 	 * Inbound event processing (Hub -> C8Y)
 	 * 
@@ -132,7 +124,7 @@ public class EventRulesService {
 							.fromUriString(hubConnectorService.getGlobalSettings().getAdamosEventServiceEndpoint())
 							.path("event").build().toUri();
 					appLogger.info("Posting to " + uriService + ": " + eventData);
-					restToHub(uriService, HttpMethod.POST, eventData, AdamosEventData.class);
+					hubService.restToHub(uriService, HttpMethod.POST, eventData, AdamosEventData.class);
 				} else {
 					appLogger.warn(
 							"Cannot send event to Adamos Hub. Device " + source + " is not synchronized to Adamos Hub");
@@ -140,15 +132,7 @@ public class EventRulesService {
 			}
 		});
 	}
-
-	private <T, R> T restToHub(URI uri, HttpMethod method, R obj, Class<T> clazz) throws RestClientException {
-		restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-		HttpEntity<R> request = new HttpEntity<R>(obj,
-				authTokenService.getHeaderBearerToken(org.springframework.http.MediaType.APPLICATION_JSON));
-		T response = restTemplate.exchange(uri, method, request, clazz).getBody();
-		return response;
-	}
-
+	
 	private String getTypeByDirection(EventDirection direction) {
 		switch (direction) {
 			case FROM_HUB:
