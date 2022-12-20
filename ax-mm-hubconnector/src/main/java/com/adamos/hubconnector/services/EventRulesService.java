@@ -16,19 +16,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.svenson.util.JSONPathUtil;
 
 import com.adamos.hubconnector.CustomProperties;
-import com.adamos.hubconnector.HubProperties;
 import com.adamos.hubconnector.model.HubConnectorResponse;
 import com.adamos.hubconnector.model.events.AdamosEventAttribute;
 import com.adamos.hubconnector.model.events.AdamosEventData;
@@ -65,9 +59,6 @@ public class EventRulesService {
 	}, "true");
 
 	@Autowired
-	private HubProperties appProperties;
-
-	@Autowired
 	private InventoryApi inventoryApi;
 
 	@Autowired
@@ -80,20 +71,17 @@ public class EventRulesService {
 	private HubConnectorService hubConnectorService;
 
 	@Autowired
-	private MicroserviceSubscriptionsService service;
+	private HubService hubService;
 
 	@Autowired
-	private AuthTokenService authTokenService;
+	private MicroserviceSubscriptionsService service;
 
 	@Value("${C8Y.tenant}")
 	private String tenant;
 
-	private RestTemplate restTemplate;
-
 	private Map<String, Date> lastUpdateDatesCache = new HashMap<>();
 
-	public EventRulesService(RestTemplateBuilder restTemplateBuilder) {
-		restTemplate = restTemplateBuilder.build();
+	public EventRulesService() {
 	}
 
 	/**
@@ -181,10 +169,11 @@ public class EventRulesService {
 	}
 
 	private void createAdamosEvent(AdamosEventData eventData) {
-		URI uriService = UriComponentsBuilder.fromUriString(appProperties.getAdamosEventServiceEndpoint())
+		URI uriService = UriComponentsBuilder
+				.fromUriString(hubConnectorService.getGlobalSettings().getAdamosEventServiceEndpoint())
 				.path("event").build().toUri();
 		appLogger.info("Posting to " + uriService + ": " + eventData);
-		restToHub(uriService, HttpMethod.POST, eventData, AdamosEventData.class);
+		hubService.restToHub(uriService, HttpMethod.POST, eventData, AdamosEventData.class);
 	}
 
 	private AdamosEventData mapToAdamosEvent(EventRepresentation event, EventMapping mapping,
@@ -216,14 +205,6 @@ public class EventRulesService {
 		Object value = util.getPropertyPath(event, c8yPropertyPath);
 		// value could potentially also be an array
 		return Arrays.asList(value);
-	}
-
-	private <T, R> T restToHub(URI uri, HttpMethod method, R obj, Class<T> clazz) throws RestClientException {
-		restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-		HttpEntity<R> request = new HttpEntity<R>(obj,
-				authTokenService.getHeaderBearerToken(org.springframework.http.MediaType.APPLICATION_JSON));
-		T response = restTemplate.exchange(uri, method, request, clazz).getBody();
-		return response;
 	}
 
 	public EventRules getEventRules() {
