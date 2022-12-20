@@ -147,11 +147,9 @@ public class EventRulesService {
 
 	public void listenForMapping(EventMapping mapping, List<ManagedObjectRepresentation> selectedDevices) {
 		appLogger.info("Started Hub event listener for mapping " + mapping.getName());
-		Date fromDate = Date.from(Instant.now().minusSeconds(60));
-		if (lastUpdateDatesCache.containsKey(mapping.getId())) {
-			// add 1 ms to prevent the latest event to be fetched again on the next poll
-			fromDate = Date.from(lastUpdateDatesCache.get(mapping.getId()).toInstant().plusMillis(1));
-		}
+		Date fromDate = lastUpdateDatesCache.containsKey(mapping.getId())
+				? lastUpdateDatesCache.get(mapping.getId())
+				: Date.from(Instant.now().minusSeconds(60));
 
 		ArrayList<EventRepresentation> allEvents = new ArrayList<>();
 		for (ManagedObjectRepresentation device : selectedDevices) {
@@ -166,10 +164,13 @@ public class EventRulesService {
 		if (!mappedEvents.isEmpty()) {
 			// update cache with latest date of all events we fetched
 			Date latestDate = allEvents.stream().map(e -> e.getCreationDateTime().toDate()).max(Date::compareTo).get();
-			lastUpdateDatesCache.put(mapping.getId(), latestDate);
+			// add 1 ms to latest date to prevent latest event to be fetched twice
+			Date nextFromDate = Date.from(latestDate.toInstant().plusMillis(1));
+			lastUpdateDatesCache.put(mapping.getId(), nextFromDate);
 
 			mappedEvents.forEach(e -> this.createAdamosEvent(e));
-			appLogger.info("Hub event listener " + mapping.getName() + " finished. Converted " + mappedEvents.size() + " events.");
+			appLogger.info("Hub event listener " + mapping.getName() + " finished. Converted " + mappedEvents.size()
+					+ " events.");
 		} else {
 			appLogger.info("Hub event listener " + mapping.getName() + " finished with nothing to do");
 		}
