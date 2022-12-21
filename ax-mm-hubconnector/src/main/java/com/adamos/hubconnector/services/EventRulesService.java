@@ -158,7 +158,7 @@ public class EventRulesService {
 		for (ManagedObjectRepresentation device : selectedDevices) {
 			Iterable<EventRepresentation> events = eventApi.getEventsByFilter(
 					new EventFilter().bySource(device.getId()).byType(mapping.getC8yEventType())
-							.byFromDate(Date.from(fromDate)))
+							.byFromCreationDate(Date.from(fromDate)))
 					.get(2000, revertParam).allPages();
 			events.forEach(allEvents::add);
 		}
@@ -168,7 +168,7 @@ public class EventRulesService {
 		if (!mappedEvents.isEmpty()) {
 			// update cache with latest date of all events we fetched
 			// need to use time attribute from event as this is also used when compared to teh from date - otherwise we refetch the same events again
-			Date latestDate = allEvents.stream().map(e -> e.getDateTime().toDate()).max(Date::compareTo).get();
+			Date latestDate = allEvents.stream().map(e -> e.getCreationDateTime().toDate()).max(Date::compareTo).get();
 			// add 1 ms to latest date to prevent latest event to be fetched twice
 			Instant nextFromDate = latestDate.toInstant().plusMillis(1);
 			lastUpdateDatesCache.put(mapping.getId(), nextFromDate);
