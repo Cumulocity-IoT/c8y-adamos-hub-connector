@@ -34,16 +34,11 @@ export class EventMapping implements IEventMapping {
   id = uuid();
 }
 
-export type AdamosMappingResponse = {
-  direction: "TO_HUB";
-  rules: IEventMapping[];
-};
-
 @Component({
   templateUrl: "./event-rules-to-hub.component.html",
 })
 export class EventRulesToHubComponent {
-  response: AdamosMappingResponse;
+  response: IEventMapping[];
   rules: IEventMapping[];
 
   selectedMapping: IEventMapping = null;
@@ -64,7 +59,7 @@ export class EventRulesToHubComponent {
   async fetchRules() {
     const response = await this.adamosService.getMappingRules();
     this.response = response;
-    this.rules = cloneDeep(response.rules);
+    this.rules = cloneDeep(response);
   }
 
   onClickMoveUp(rule: IEventMapping) {
@@ -128,7 +123,7 @@ export class EventRulesToHubComponent {
   }
 
   onClickUndo(): void {
-    this.rules = cloneDeep(this.response.rules);
+    this.rules = cloneDeep(this.response);
     this.hasChanges = false;
   }
 
@@ -151,7 +146,7 @@ export class EventRulesToHubComponent {
   }
 
   async onSave() {
-    this.response.rules = cloneDeep(this.rules);
+    this.response = cloneDeep(this.rules);
     await this.adamosService.updateMappingRules(this.response);
     await this.fetchRules();
     this.hasChanges = false;
