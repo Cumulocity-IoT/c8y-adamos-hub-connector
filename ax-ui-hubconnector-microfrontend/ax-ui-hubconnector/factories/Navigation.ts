@@ -32,16 +32,24 @@ export class HubConnectorNavigationFactory implements NavigatorNodeFactory {
       new NavigatorNode({
         label: _("Events from Hub"),
         icon: "c8y-icon c8y-icon-events",
-        path: "/hub/eventRules",
+        path: "/hub/event-rules/from-hub",
         routerLinkExact: true,
         priority: 99,
+      }),
+
+      new NavigatorNode({
+        label: _("Events to Hub"),
+        icon: "c8y-icon c8y-icon-events",
+        path: "/hub/event-rules/to-hub",
+        routerLinkExact: true,
+        priority: 98,
       }),
 
       new NavigatorNode({
         label: _("Settings"),
         icon: "c8y-icon c8y-icon-administration",
         path: "/hub/settings",
-        priority: 98,
+        priority: 97,
       }),
     ];
 

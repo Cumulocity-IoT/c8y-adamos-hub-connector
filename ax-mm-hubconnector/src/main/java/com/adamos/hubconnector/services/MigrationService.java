@@ -6,6 +6,7 @@ import java.util.HashMap;
 
 import com.adamos.hubconnector.CustomProperties;
 import com.adamos.hubconnector.model.HubConnectorGlobalSettings;
+import com.adamos.hubconnector.model.events.EventMapping;
 import com.adamos.hubconnector.model.hub.EquipmentDTO;
 import com.adamos.hubconnector.model.hub.hierarchy.AreaDTO;
 import com.adamos.hubconnector.model.hub.hierarchy.SiteDTO;
@@ -187,6 +188,15 @@ public class MigrationService {
         optionEnvironment.setValue("https://adamos-hub.dev");
         options.add(optionEnvironment);
         cumulocityService.updateTenantOptions(options);
+
+        ManagedObjectRepresentation mo = cumulocityService
+                .getManagedObjectByFragmentType(CustomProperties.HUB_EVENTRULES_TO_HUB_OBJECT_TYPE);
+        if (mo != null) {
+            mo.setProperty(CustomProperties.HUB_EVENTRULES_TO_HUB_OBJECT_TYPE, new EventMapping[0]);
+            mo.setLastUpdatedDateTime(null);
+            cumulocityService.updateManagedObject(mo);
+        }
+        
 
         MigrationService.migrationRunning = false;
         LOGGER.info("Migration to version 1.4.0 finished...");

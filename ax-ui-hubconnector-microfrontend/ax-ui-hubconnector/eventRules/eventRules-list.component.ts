@@ -1,7 +1,6 @@
 import { _ } from '@c8y/ngx-components';
 import { Component, ViewChild } from '@angular/core';
 import { AdamosHubService } from '../shared/adamosHub.service';
-import { ActivatedRoute } from '@angular/router';
 import { BehaviorSubject, combineLatest } from 'rxjs';
 import { IHubResponse } from '../shared/model/IHubResponse';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
@@ -30,21 +29,8 @@ export class EventRulesListComponent {
     selectedRule: IEventRule;
     private _tempCopyRule: IEventRule;
 
-    private getTitleByDirection(direction: String) {
-        switch (direction) {
-            case "fromAdamosHub":
-                return _("from ADAMOS-Hub");
-            case "toAdamosHub":
-                return _("to ADAMOS-Hub");
-            default:
-                return _("unknown");
-        }
-    }
-
-    constructor(private hubService: AdamosHubService, private route: ActivatedRoute, private bsModalService: BsModalService) {
-        this.direction = this.route.snapshot.paramMap.get('direction');
-        this.title += " " + this.getTitleByDirection(this.direction);
-
+    constructor(private hubService: AdamosHubService, private bsModalService: BsModalService) {
+       
         // _ annotation to mark this string as translatable string.
         this.informationText = _('Ooops! It seems that there is no device to display.');
         // this.loadMappings();

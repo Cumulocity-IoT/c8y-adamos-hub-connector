@@ -5,13 +5,15 @@ import { routes } from "./routes";
 import { SharedModule } from "../shared/shared.module";
 import { AdamosHubService } from "../shared/adamosHub.service";
 import { EventRulesListComponent } from "./eventRules-list.component";
+import { EventRulesToHubComponent } from "./event-rules-to-hub.component";
+import { MappingModalComponent } from "./mapping-modal.component";
 
 /*
  * Defines a module for the device-management.
  */
 @NgModule({
   imports: [CoreModule, FormsModule, SharedModule],
-  declarations: [EventRulesListComponent],
+  declarations: [EventRulesListComponent, EventRulesToHubComponent, MappingModalComponent],
   exports: [EventRulesListComponent],
   providers: [
     AdamosHubService,

@@ -1,5 +1,8 @@
 import { Injectable } from "@angular/core";
 import { FetchClient, IManagedObject } from "@c8y/client";
+import {
+  IEventMapping,
+} from "ax-ui-hubconnector/eventRules/event-rules-to-hub.component";
 import { isArray } from "lodash-es";
 import { AdamosHubDevice } from "./model/AdamosDevice";
 
@@ -103,5 +106,42 @@ export class NewAdamosHubService {
 
     const data = await response.json();
     return data;
+  }
+
+  async getMappingRules(): Promise<IEventMapping[]> {
+    const url = `${this.hubUrl}/eventMapping`;
+
+    const response = await this.fc.fetch(url, {
+      method: "GET",
+      headers: this.headers
+    });
+
+    if (response.status !== 200) {
+      const error = new Error();
+      error.message = `Status not ok (${response.status})`;
+      throw error;
+    }
+
+    const data = await response.json();
+    if (isArray(data)) {
+      return data as IEventMapping[];
+    } else {
+      return [];
+    }
+  }
+
+  async updateMappingRules(mapping: IEventMapping[]): Promise<void> {
+    const url = `${this.hubUrl}/eventMapping`;
+    const response = await this.fc.fetch(url, {
+      method: "POST",
+      headers: this.headers,
+      body: JSON.stringify(mapping)
+    });
+
+    if (response.status !== 200) {
+      const error = new Error();
+      error.message = `Status not ok (${response.status})`;
+      throw error;
+    }
   }
 }
