@@ -20,7 +20,9 @@ import org.springframework.http.HttpMethod;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.svenson.util.InvalidPropertyPathException;
 import org.svenson.util.JSONPathUtil;
+import org.svenson.util.PropertyPathAccessException;
 
 import com.adamos.hubconnector.CustomProperties;
 import com.adamos.hubconnector.model.HubConnectorResponse;
@@ -50,6 +52,7 @@ import com.jayway.jsonpath.DocumentContext;
 public class EventRulesService {
 	private static final ObjectMapper mapper = new ObjectMapper().registerModule(new JodaModule());
 	private static final Logger appLogger = LoggerFactory.getLogger(EventRulesService.class);
+	private static final JSONPathUtil util = new JSONPathUtil();
 
 	QueryParam revertParam = new QueryParam(new Param() {
 		@Override
@@ -79,7 +82,7 @@ public class EventRulesService {
 	@Value("${C8Y.tenant}")
 	private String tenant;
 
-	private Map<String, Date> lastUpdateDatesCache = new HashMap<>();
+	private Map<String, Instant> lastUpdateDatesCache = new HashMap<>();
 
 	public EventRulesService() {
 	}
@@ -110,7 +113,7 @@ public class EventRulesService {
 	}
 
 	@Scheduled(fixedRate = 60000)
-	public void startListenersForEventMappings() {
+	public void pollEventMappings() {
 		service.runForEachTenant(() -> {
 			appLogger.info("Scheduled Hub event processing for tenant " + service.getTenant());
 
@@ -139,22 +142,23 @@ public class EventRulesService {
 									: hubDevices.stream()
 											.filter(d -> relevantHubDeviceIds.contains(d.getId().getValue()))
 											.collect(Collectors.toList());
-					listenForMapping(mapping, devicesFromMapping);
+					mapEvents(mapping, devicesFromMapping);
 				}
 			}
 		});
 	}
 
-	public void listenForMapping(EventMapping mapping, List<ManagedObjectRepresentation> selectedDevices) {
-		appLogger.info("Started Hub event listener for mapping " + mapping.getName());
-		Date fromDate = lastUpdateDatesCache.containsKey(mapping.getId())
+	public void mapEvents(EventMapping mapping, List<ManagedObjectRepresentation> selectedDevices) {
+		appLogger.info("Starting Hub event mapping " + mapping.getName());
+		Instant fromDate = lastUpdateDatesCache.containsKey(mapping.getId())
 				? lastUpdateDatesCache.get(mapping.getId())
-				: Date.from(Instant.now().minusSeconds(60));
+				: Instant.now().minusSeconds(60);
 
 		ArrayList<EventRepresentation> allEvents = new ArrayList<>();
 		for (ManagedObjectRepresentation device : selectedDevices) {
 			Iterable<EventRepresentation> events = eventApi.getEventsByFilter(
-					new EventFilter().bySource(device.getId()).byType(mapping.getC8yEventType()).byFromDate(fromDate))
+					new EventFilter().bySource(device.getId()).byType(mapping.getC8yEventType())
+							.byFromDate(Date.from(fromDate)))
 					.get(2000, revertParam).allPages();
 			events.forEach(allEvents::add);
 		}
@@ -163,16 +167,17 @@ public class EventRulesService {
 				.collect(Collectors.toList());
 		if (!mappedEvents.isEmpty()) {
 			// update cache with latest date of all events we fetched
-			Date latestDate = allEvents.stream().map(e -> e.getCreationDateTime().toDate()).max(Date::compareTo).get();
+			// need to use time attribute from event as this is also used when compared to teh from date - otherwise we refetch the same events again
+			Date latestDate = allEvents.stream().map(e -> e.getDateTime().toDate()).max(Date::compareTo).get();
 			// add 1 ms to latest date to prevent latest event to be fetched twice
-			Date nextFromDate = Date.from(latestDate.toInstant().plusMillis(1));
+			Instant nextFromDate = latestDate.toInstant().plusMillis(1);
 			lastUpdateDatesCache.put(mapping.getId(), nextFromDate);
 
 			mappedEvents.forEach(e -> this.createAdamosEvent(e));
-			appLogger.info("Hub event listener " + mapping.getName() + " finished. Converted " + mappedEvents.size()
+			appLogger.info("Hub event mapping " + mapping.getName() + " finished. Converted " + mappedEvents.size()
 					+ " events.");
 		} else {
-			appLogger.info("Hub event listener " + mapping.getName() + " finished with nothing to do");
+			appLogger.info("Hub event mapping " + mapping.getName() + " finished with nothing to do");
 		}
 	}
 
@@ -202,18 +207,46 @@ public class EventRulesService {
 
 		if (!mapping.getC8yFragments().isEmpty()) {
 			List<Object> attributes = mapping.getC8yFragments().stream()
-					.map(fragment -> mapToAdamosEventAttribute(fragment, event)).collect(Collectors.toList());
+					.map(fragment -> mapToAdamosEventAttribute(fragment, event)).flatMap(attrs -> attrs.stream())
+					.collect(Collectors.toList());
 			eventData.setAttributes(attributes.toArray(new AdamosEventAttribute[attributes.size()]));
 		}
 
 		return eventData;
 	}
 
-	private List<Object> mapToAdamosEventAttribute(String c8yPropertyPath, EventRepresentation event) {
-		JSONPathUtil util = new JSONPathUtil();
-		Object value = util.getPropertyPath(event, c8yPropertyPath);
-		// value could potentially also be an array
-		return Arrays.asList(value);
+	private List<AdamosEventAttribute> mapToAdamosEventAttribute(String c8yPropertyPath, EventRepresentation event) {
+		List<AdamosEventAttribute> result = new ArrayList<>();
+		try {
+			Object value = util.getPropertyPath(event, c8yPropertyPath);
+			if (value instanceof List<?>) {
+				AdamosEventAttribute[] attributes = mapper.convertValue(value, AdamosEventAttribute[].class);
+				result.addAll(Arrays.asList(attributes));
+
+			} else {
+				AdamosEventAttribute attribute = mapper.convertValue(value, AdamosEventAttribute.class);
+				if (attribute.getAttributeTypeId() == null || attribute.getValue() == null) {
+					throw new IllegalArgumentException("Expected attributeId and value to be nonnull.");
+				}
+				result.add(attribute);
+			}
+		} catch (InvalidPropertyPathException ippe) {
+			appLogger.warn("Invalid path " + c8yPropertyPath + ". Skipping this attribute for event "
+					+ event.getId().getValue());
+			appLogger.debug("Invalid path error: " + ippe.getMessage());
+
+		} catch (PropertyPathAccessException ppae) {
+			appLogger.warn("Invalid value in path " + c8yPropertyPath + ". Skipping this attribute for event "
+					+ event.getId().getValue());
+			appLogger.debug("Invalid value in path error: " + ppae.getMessage());
+
+		} catch (IllegalArgumentException iae) {
+			appLogger.warn("Parsing failed for path " + c8yPropertyPath + ". Skipping this attribute for event "
+					+ event.getId().getValue());
+			appLogger.debug("Parsing error " + iae.getMessage());
+
+		}
+		return result;
 	}
 
 	public EventRules getEventRules() {
