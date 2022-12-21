@@ -44,11 +44,11 @@ export class MappingModalComponent {
   constructor(private inventory: InventoryService) {
     this.inventory
       .list({
-        query: "$filter=has('c8y_IsDevice') and has('adamos_hub_isDevice')",
+        query: "$filter=has('adamos_hub_data')",
         pageSize: 100,
         withTotalPages: true,
       })
-      .then((result) => this.devices = result);
+      .then((result) => (this.devices = result));
   }
 
   setPipe(filterStr: string) {
@@ -57,7 +57,7 @@ export class MappingModalComponent {
       map((data: []) =>
         data.filter(
           (mo: IManagedObject) =>
-            mo.name.toLowerCase().indexOf(filterStr.toLowerCase()) > -1 ||
+            mo.name?.toLowerCase().indexOf(filterStr.toLowerCase()) > -1 ||
             mo.id.indexOf(filterStr) > -1
         )
       )
@@ -83,9 +83,13 @@ export class MappingModalComponent {
       id,
       adamosEventType,
     } = this.ui;
+
+    // if field is left empty it results is { value: "" } which we need to filter out
+    const fragments = c8yFragments.filter((v) => !isEmpty(v.value)).map((v) => v.value);
+
     this.save.emit({
       c8yEventType,
-      c8yFragments: c8yFragments.map((v) => v.value),
+      c8yFragments: fragments,
       c8yDevices,
       enabled,
       name,

@@ -185,7 +185,7 @@ public class MigrationService {
         OptionRepresentation optionEnvironment = new OptionRepresentation();
         optionEnvironment.setCategory(CustomProperties.HUB_GLOBAL_SETTINGS);
         optionEnvironment.setKey("environment");
-        optionEnvironment.setValue("https://adamos-hub.dev");
+        optionEnvironment.setValue("adamos-hub.dev");
         options.add(optionEnvironment);
         cumulocityService.updateTenantOptions(options);
 

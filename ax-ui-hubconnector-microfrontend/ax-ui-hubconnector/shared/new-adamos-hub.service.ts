@@ -133,7 +133,7 @@ export class NewAdamosHubService {
   async updateMappingRules(mapping: IEventMapping[]): Promise<void> {
     const url = `${this.hubUrl}/eventMapping`;
     const response = await this.fc.fetch(url, {
-      method: "POST",
+      method: "PUT",
       headers: this.headers,
       body: JSON.stringify(mapping)
     });

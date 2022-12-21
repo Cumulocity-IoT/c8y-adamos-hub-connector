@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -125,10 +124,10 @@ public class EventRulesService {
 			final List<ManagedObjectRepresentation> hubDevices = cumulocityService
 					.getManagedObjectsByFragmentType("adamos_hub_data");
 
-			Stream<EventMapping> mappingStream = Arrays.asList(mappings).stream();
+			List<EventMapping> mappingList = Arrays.asList(mappings);
 			// remove deleted mapping entries from cache
 			for (String cachedId : lastUpdateDatesCache.keySet()) {
-				if (mappingStream.filter(m -> m.getId().equals(cachedId)).findFirst().orElse(null) == null) {
+				if (mappingList.stream().filter(m -> m.getId().equals(cachedId)).findFirst().orElse(null) == null) {
 					lastUpdateDatesCache.remove(cachedId);
 				}
 			}
@@ -149,10 +148,12 @@ public class EventRulesService {
 	}
 
 	public void mapEvents(EventMapping mapping, List<ManagedObjectRepresentation> selectedDevices) {
-		appLogger.info("Starting Hub event mapping " + mapping.getName());
+
 		Instant fromDate = lastUpdateDatesCache.containsKey(mapping.getId())
 				? lastUpdateDatesCache.get(mapping.getId())
 				: Instant.now().minusSeconds(60);
+
+		appLogger.info("Starting Hub event mapping " + mapping.getName() + " with createDate > " + fromDate.toString());
 
 		ArrayList<EventRepresentation> allEvents = new ArrayList<>();
 		for (ManagedObjectRepresentation device : selectedDevices) {
@@ -167,26 +168,35 @@ public class EventRulesService {
 				.collect(Collectors.toList());
 		if (!mappedEvents.isEmpty()) {
 			// update cache with latest date of all events we fetched
-			// need to use time attribute from event as this is also used when compared to teh from date - otherwise we refetch the same events again
+			// need to use time attribute from event as this is also used when compared to
+			// the from date - otherwise we refetch the same events again
 			Date latestDate = allEvents.stream().map(e -> e.getCreationDateTime().toDate()).max(Date::compareTo).get();
 			// add 1 ms to latest date to prevent latest event to be fetched twice
 			Instant nextFromDate = latestDate.toInstant().plusMillis(1);
 			lastUpdateDatesCache.put(mapping.getId(), nextFromDate);
 
-			mappedEvents.forEach(e -> this.createAdamosEvent(e));
-			appLogger.info("Hub event mapping " + mapping.getName() + " finished. Converted " + mappedEvents.size()
-					+ " events.");
+			long successfulMappingCount = mappedEvents.stream().map(e -> this.createAdamosEvent(e))
+					.filter(e -> e == true).count();
+			appLogger.info("Hub event mapping " + mapping.getName() + " finished. Converted " + successfulMappingCount
+					+ " of " + mappedEvents.size() + " events.");
 		} else {
 			appLogger.info("Hub event mapping " + mapping.getName() + " finished with nothing to do");
 		}
 	}
 
-	private void createAdamosEvent(AdamosEventData eventData) {
-		URI uriService = UriComponentsBuilder
-				.fromUriString(hubConnectorService.getGlobalSettings().getAdamosEventServiceEndpoint())
-				.path("event").build().toUri();
-		appLogger.info("Posting to " + uriService + ": " + eventData);
-		hubService.restToHub(uriService, HttpMethod.POST, eventData, AdamosEventData.class);
+	private Boolean createAdamosEvent(AdamosEventData eventData) {
+		try {
+			URI uriService = UriComponentsBuilder
+					.fromUriString(hubConnectorService.getGlobalSettings().getAdamosEventServiceEndpoint())
+					.path("event").build().toUri();
+			appLogger.info("Posting to " + uriService + ": " + eventData);
+			hubService.restToHub(uriService, HttpMethod.POST, eventData, AdamosEventData.class);
+		} catch (Exception e) {
+			appLogger.warn("Could not send evet data " + eventData.toString() + ": " + e.getMessage());
+			return false;
+		}
+		return true;
+
 	}
 
 	private AdamosEventData mapToAdamosEvent(EventRepresentation event, EventMapping mapping,
