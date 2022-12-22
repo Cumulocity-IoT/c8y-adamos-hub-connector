@@ -16,7 +16,7 @@ The Cumulocity IoT ADAMOS Hub Connector is based on version 1.0 of the ADAMOS Hu
 * Install the microservice (*hubconnector-X.Y.Z.zip*) on your Cumulocity IoT tenant.
 * Install the UI as an application plugin (*ax-ui-hubconnector-microfrontend.zip*) into Cumulocity IoT Administration
     * Create Adminstration clone, select *Overrule subscribed application* to replace the standard Administration application with your clone
-    * If you are on Cumulocity IoT 10.15, open the Administration application with *?beta=true* appended to the URL
+    * If you are on Cumulocity IoT 10.13 - 10.15, open the Administration application with *?beta=true* appended to the URL
     * Click on your newly created Adminstration clone in the application list. Select Plugins tab.
     * Click on install plugins. Select and install ADAMOS Hub Connector plugin (*ax-ui-hubconnector-microfrontend.zip*)
     * Open the Administration clone. It might be necessary to clear your browser cache.
