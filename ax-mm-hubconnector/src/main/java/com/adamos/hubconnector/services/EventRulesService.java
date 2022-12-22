@@ -191,7 +191,7 @@ public class EventRulesService {
 					.fromUriString(hubConnectorService.getGlobalSettings().getAdamosEventServiceEndpoint())
 					.path("event").build().toUri();
 			appLogger.info("Posting to " + uriService + ": " + mapper.writeValueAsString(eventData));
-			// hubService.restToHub(uriService, HttpMethod.POST, eventData, AdamosEventData.class);
+			hubService.restToHub(uriService, HttpMethod.POST, eventData, AdamosEventData.class);
 		} catch (Exception e) {
 			try {
 				appLogger.warn(
