@@ -56,7 +56,8 @@ ADAMOS Hub publishes events via AMQP. The ADAMOS Hub Connector can subscribe to 
 * Custom JSON - static JSON structure to add to all mapped measurements, events, and alarms
 
 ### Events to Hub
-![Mapping - Events to ADAMOS Hub](doc/04-tohub.png | width=350)
+<img src="doc/04-tohub.png" width="48">
+![Mapping - Events to ADAMOS Hub]( | width=350)
 
 Events produced in Cumulocity IoT can also be sent to ADAMOS Hub to update the state of equipment there. the target events must be events supported by the ADAMOS Hub Event Service (https://enablement.adamos.com/adamos-hub/fuer-entwickler/developer-handbook/event-service/):
 
