@@ -301,6 +301,9 @@
                     },
                     "defaultSyncConfiguration": {
                         "$ref": "#/components/schemas/GlobalSyncConfiguration"
+                    },
+                    "environment": {
+                        "type": "string"
                     }
                 }
             },
@@ -408,6 +411,38 @@
                     }
                 }
             },
+            "EventMapping": {
+                "type": "object",
+                "properties": {
+                    "c8yEventType": {
+                        "type": "string"
+                    },
+                    "c8yDevices": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "adamosEventType": {
+                        "type": "string"
+                    },
+                    "c8yFragments": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "enabled": {
+                        "type": "boolean"
+                    }
+                }
+            },
             "EventTrigger": {
                 "type": "object",
                 "properties": {
@@ -449,18 +484,18 @@
                 }
             },
             "TreeNode": {
-              "type": "object",
-              "properties": {
-                "children": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/TreeNode"
-                  }
-                },
-                "data": {
-                  "type": "object"
+                "type": "object",
+                "properties": {
+                    "children": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/TreeNode"
+                        }
+                    },
+                    "data": {
+                        "type": "object"
+                    }
                 }
-              }
             }
         },
         "responses": {
@@ -613,13 +648,13 @@
                     "200": {
                         "description": "OK",
                         "content": {
-                          "application/json": {
-                              "schema": {
-                                  "type": "object",
-                                  "$ref": "#/components/schemas/TreeNode"
-                              }
-                          }
-                      }
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "$ref": "#/components/schemas/TreeNode"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -934,6 +969,61 @@
                         "application/json": {
                             "schema": {
                                 "$ref": "#/components/schemas/EventRules"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/unauthorizedError401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/forbiddenError403"
+                    }
+                }
+            }
+        },
+        "/eventMapping": {
+            "get": {
+                "description": "Get all event mapping rules from ADAMOS Hub. <br>Required permission: ROLE_ADAMOS_HUB_READ",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/EventMapping"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/unauthorizedError401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/forbiddenError403"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/notFoundError404"
+                    }
+                }
+            },
+            "put": {
+                "description": "Update event mapping rules on ADAMOS Hub. <br>Required permission: ROLE_ADAMOS_HUB_UPDATE",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/EventMapping"
+                                }
                             }
                         }
                     }
