@@ -3,7 +3,7 @@
   "version": "1.3.7",
   "description": "The Cumulocity IoT ADAMOS Hub Connector provides 2-way synchronization of devices between ADAMOS Hub Services and a Cumulocity IoT Tenant.",
   "scripts": {
-    "start": "c8ycli server -u https://pmt-training.eu-latest.cumulocity.com/ --shell adamos-hub-demo",
+    "start": "c8ycli server -u https://pmt-training.eu-latest.cumulocity.com/ --shell administration",
     "build": "c8ycli build",
     "deploy": "c8ycli deploy -u https://pmt-training.eu-latest.cumulocity.com/",
     "postinstall": "ngcc"
@@ -13,7 +13,8 @@
     "synchronization",
     "devices"
   ],
-  "author": "GCC IoT",
+  "author": "Software AG",
+  "homepage": "https://github.com/SoftwareAG/c8y-adamos-hub-connector",
   "license": "ISC",
   "dependencies": {
     "@angular/animations": "12.2.14",

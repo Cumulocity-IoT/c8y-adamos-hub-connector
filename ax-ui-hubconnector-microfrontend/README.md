@@ -7,9 +7,10 @@ The Cumulocity IoT ADAMOS Hub Connector provides 2-way synchronization of device
 * The Cumulocity IoT ADAMOS Hub Connector is based on version 1.0 of the ADAMOS Hub Services.
 
 * Adds a menu point ADAMOS Hub
-** Devices
-** Events from Hub
-** Settings
+    * Devices
+    * Events from Hub
+    * Events to Hub
+    * Settings
 
 ## Micro Frontend Plugin
 
