@@ -28,13 +28,14 @@
   <table class="table table-striped" *ngIf="rules?.length > 0">
     <thead>
       <tr>
-        <th translate>{{ "Name" | translate }}</th>
-        <th translate>{{ "Cumulocity Event type" | translate }}</th>
-        <th translate>{{ "Cumulocity devices" | translate }}</th>
-        <th translate>{{ "ADAMOS Hub event code" | translate }}</th>
-        <th translate>{{ "Cumulocity event fragments" | translate }}</th>
-        <th translate style="width: 2em">{{ "Move" | translate }}</th>
-        <th class="text-right" translate>{{ "Action" | translate }}</th>
+        <th>{{ "Name" | translate }}</th>
+        <th>{{ "Status" | translate }}</th>
+        <th>{{ "Cumulocity Event type" | translate }}</th>
+        <th>{{ "Cumulocity devices" | translate }}</th>
+        <th>{{ "ADAMOS Hub event code" | translate }}</th>
+        <th>{{ "Cumulocity event fragments" | translate }}</th>
+        <th style="width: 2em">{{ "Move" | translate }}</th>
+        <th class="text-right">{{ "Action" | translate }}</th>
       </tr>
     </thead>
     <tbody class="table-hover">
@@ -44,11 +45,20 @@
       >
         <td>
           <a (click)="onClickEdit(rule)">
-            <span *ngIf="rule.name !== undefined; else nodevicename">{{
-              rule.name
-            }}</span>
-            <span *ngIf="rule.name === undefined"> - </span>
+            {{ rule.name ? rule.name : "-" }}
           </a>
+        </td>
+        <td>
+          <label
+            class="c8y-switch c8y-switch--inline"
+            (click)="$event.preventDefault(); openTogglStatusModal(rule)"
+          >
+            <input type="checkbox" [checked]="rule.enabled" />
+            <span></span>
+            <span>{{
+              (rule.enabled ? "Active" : "Disabled") | translate
+            }}</span>
+          </label>
         </td>
         <td>{{ rule.c8yEventType }}</td>
         <td>{{ rule.c8yDevices.toString() }}</td>
@@ -62,10 +72,7 @@
             style="float: left"
           ></i
           ><i
-            *ngIf="
-              rules.length > 0 &&
-              rules.indexOf(rule) < rules.length - 1
-            "
+            *ngIf="rules.length > 0 && rules.indexOf(rule) < rules.length - 1"
             c8yIcon="arrow-down"
             (click)="onClickMoveDown(rule)"
             style="float: right"
@@ -77,7 +84,7 @@
               id="btnVerticalDrop"
               type="button"
               class="btn-dot dropdown-toggle c8y-dropdown"
-              style="padding: 7px; position: absolute; right: 0px; top: 0px;"
+              style="padding: 7px; position: absolute; right: 0px; top: 0px"
               dropdownToggle
               aria-haspopup="true"
               aria-expanded="false"

@@ -192,7 +192,7 @@ public class EventRulesService {
 			appLogger.info("Posting to " + uriService + ": " + eventData);
 			hubService.restToHub(uriService, HttpMethod.POST, eventData, AdamosEventData.class);
 		} catch (Exception e) {
-			appLogger.warn("Could not send evet data " + eventData.toString() + ": " + e.getMessage());
+			appLogger.warn("Could not send event data " + eventData.toString() + ": " + e.getMessage());
 			return false;
 		}
 		return true;

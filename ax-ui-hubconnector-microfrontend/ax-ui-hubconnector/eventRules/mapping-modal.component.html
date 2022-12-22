@@ -33,7 +33,7 @@
         <c8y-typeahead
           container="body"
           (onSearch)="setPipe($event)"
-          placeholder="Select"
+          placeholder="{{ ui.c8yDevices.length + ' Device(s) selected' }}"
           [hideNew]="true"
         >
           <c8y-li

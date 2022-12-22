@@ -19,7 +19,7 @@ export class SettingsComponent {
     currentLang: string;
     mappings: any;
     selectedMapping: any;
-    hubURLs = ['https://adamos-hub.dev', 'https://adamos-hub.com'];
+    hubURLs = ['adamos-hub.dev', 'adamos-hub.com'];
 
     isLoading$: BehaviorSubject<boolean> = new BehaviorSubject(false);
     

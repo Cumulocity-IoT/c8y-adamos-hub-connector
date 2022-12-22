@@ -131,7 +131,7 @@
                         <div class="form-group">
                             <label for="environment_url">{{'ADAMOS Hub Instance' | translate }}</label>
                             <div class="c8y-select-wrapper">
-                                <select class="form-control" id="environment_url" > <!-- [(ngModel)]="globalSettings.environment.url" -->
+                                <select class="form-control" id="environment_url" [(ngModel)]="globalSettings.environment">
                                     <option *ngFor="let url of hubURLs" [value]="url">{{ url }}</option>
                                 </select>
                             </div>

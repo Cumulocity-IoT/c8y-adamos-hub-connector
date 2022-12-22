@@ -1,8 +1,9 @@
 import { Component, ViewChild } from "@angular/core";
 import { NewAdamosHubService } from "../shared/new-adamos-hub.service";
-import { cloneDeep } from "lodash-es";
+import { capitalize, cloneDeep } from "lodash-es";
 import { BsModalRef, BsModalService } from "ngx-bootstrap/modal";
 import { v4 as uuid } from "uuid";
+import { ModalService, Status, _ } from "@c8y/ngx-components";
 
 export interface IEventMapping {
   /** The Cumulocity event type that should be the source of the mapping */
@@ -51,7 +52,8 @@ export class EventRulesToHubComponent {
 
   constructor(
     private bsModalService: BsModalService,
-    private adamosService: NewAdamosHubService
+    private adamosService: NewAdamosHubService,
+    private modalService: ModalService
   ) {
     this.refresh();
   }
@@ -68,6 +70,21 @@ export class EventRulesToHubComponent {
       this.rules,
       this.rules.indexOf(rule),
       this.rules.indexOf(rule) - 1
+    );
+  }
+
+  openTogglStatusModal(rule: IEventMapping) {
+    const action = rule.enabled ? "deactivate" : "activate";
+    const title = rule.name;
+    const body = _(`Are you sure you want to ${action} this rule?`);
+    const labels = {
+      ok: _(capitalize(action)),
+    };
+
+    rule.enabled = !rule.enabled;
+    this.modalService.confirm(title, body, Status.INFO, labels).then(
+      () => (this.hasChanges = true),
+      () => (rule.enabled = !rule.enabled)
     );
   }
 
