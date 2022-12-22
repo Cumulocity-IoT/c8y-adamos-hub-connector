@@ -44,7 +44,7 @@ The core functionality of ADAMOS Hub Connector is to synchronize devices between
 * When switching the device liszt to ADAMOS Hub devices, all devices in ADAMOS Hub regardless of whether they are available in the Cumulocity IoT tenant are shown. Here it is possible to link ADAMOS Hub devices to new or existing Cumulocity IoT devices and the unlink them again.
 
 ### Events from Hub
-![Mapping - Events from ADAMOS Hub](doc/03-fromhub.png  | width=350)
+<img src="doc/03-fromhub.png" width="350">
 
 ADAMOS Hub publishes events via AMQP. The ADAMOS Hub Connector can subscribe to these events and map them into Cumulocity IoT measurements, events, and alarms. This mapping is controlled by mapping rules:
 
@@ -56,8 +56,7 @@ ADAMOS Hub publishes events via AMQP. The ADAMOS Hub Connector can subscribe to 
 * Custom JSON - static JSON structure to add to all mapped measurements, events, and alarms
 
 ### Events to Hub
-<img src="doc/04-tohub.png" width="48">
-![Mapping - Events to ADAMOS Hub]( | width=350)
+<img src="doc/04-tohub.png" width="350">
 
 Events produced in Cumulocity IoT can also be sent to ADAMOS Hub to update the state of equipment there. the target events must be events supported by the ADAMOS Hub Event Service (https://enablement.adamos.com/adamos-hub/fuer-entwickler/developer-handbook/event-service/):
 
