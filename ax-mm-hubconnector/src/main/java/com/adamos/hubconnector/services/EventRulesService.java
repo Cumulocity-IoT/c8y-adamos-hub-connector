@@ -42,6 +42,7 @@ import com.cumulocity.sdk.client.event.EventApi;
 import com.cumulocity.sdk.client.event.EventFilter;
 import com.cumulocity.sdk.client.inventory.InventoryApi;
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
@@ -189,10 +190,15 @@ public class EventRulesService {
 			URI uriService = UriComponentsBuilder
 					.fromUriString(hubConnectorService.getGlobalSettings().getAdamosEventServiceEndpoint())
 					.path("event").build().toUri();
-			appLogger.info("Posting to " + uriService + ": " + eventData);
-			hubService.restToHub(uriService, HttpMethod.POST, eventData, AdamosEventData.class);
+			appLogger.info("Posting to " + uriService + ": " + mapper.writeValueAsString(eventData));
+			// hubService.restToHub(uriService, HttpMethod.POST, eventData, AdamosEventData.class);
 		} catch (Exception e) {
-			appLogger.warn("Could not send event data " + eventData.toString() + ": " + e.getMessage());
+			try {
+				appLogger.warn(
+						"Could not send event data " + mapper.writeValueAsString(eventData) + ": " + e.getMessage());
+			} catch (JsonProcessingException jpe) {
+				appLogger.warn("Could not send event data " + eventData.toString() + ": " + e.getMessage());
+			}
 			return false;
 		}
 		return true;
