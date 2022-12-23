@@ -14,7 +14,6 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpMethod;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -36,11 +35,6 @@ import com.adamos.hubconnector.model.hub.EquipmentDTO;
 import com.cumulocity.microservice.subscription.service.MicroserviceSubscriptionsService;
 import com.cumulocity.rest.representation.event.EventRepresentation;
 import com.cumulocity.rest.representation.inventory.ManagedObjectRepresentation;
-import com.cumulocity.sdk.client.Param;
-import com.cumulocity.sdk.client.QueryParam;
-import com.cumulocity.sdk.client.event.EventApi;
-import com.cumulocity.sdk.client.event.EventFilter;
-import com.cumulocity.sdk.client.inventory.InventoryApi;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -54,19 +48,6 @@ public class EventRulesService {
 	private static final Logger appLogger = LoggerFactory.getLogger(EventRulesService.class);
 	private static final JSONPathUtil util = new JSONPathUtil();
 
-	QueryParam revertParam = new QueryParam(new Param() {
-		@Override
-		public String getName() {
-			return "revert";
-		}
-	}, "true");
-
-	@Autowired
-	private InventoryApi inventoryApi;
-
-	@Autowired
-	private EventApi eventApi;
-
 	@Autowired
 	private CumulocityService cumulocityService;
 
@@ -78,10 +59,7 @@ public class EventRulesService {
 
 	@Autowired
 	private MicroserviceSubscriptionsService service;
-
-	@Value("${C8Y.tenant}")
-	private String tenant;
-
+	
 	private Map<String, Instant> lastUpdateDatesCache = new HashMap<>();
 
 	public EventRulesService() {
@@ -104,7 +82,6 @@ public class EventRulesService {
 		for (EventRule rule : rulesFromHub.getRules()) {
 			if (rule.doesMatch(message) && rule.isEnabled()) {
 				AdamosEventProcessor adamosEventProcessor = (AdamosEventProcessor) rule.getEventProcessor();
-				adamosEventProcessor.setHubConnectorService(hubConnectorService);
 				adamosEventProcessor.setCumulocityService(cumulocityService);
 				adamosEventProcessor.processMessage(message, rule);
 			}
@@ -158,10 +135,7 @@ public class EventRulesService {
 
 		ArrayList<EventRepresentation> allEvents = new ArrayList<>();
 		for (ManagedObjectRepresentation device : selectedDevices) {
-			Iterable<EventRepresentation> events = eventApi.getEventsByFilter(
-					new EventFilter().bySource(device.getId()).byType(mapping.getC8yEventType())
-							.byFromCreationDate(Date.from(fromDate)))
-					.get(2000, revertParam).allPages();
+			Iterable<EventRepresentation> events = cumulocityService.getEvents(device, mapping.getC8yEventType(), fromDate);
 			events.forEach(allEvents::add);
 		}
 
@@ -184,8 +158,8 @@ public class EventRulesService {
 			appLogger.info("Hub event mapping " + mapping.getName() + " finished with nothing to do");
 		}
 	}
-
-	private Boolean createAdamosEvent(AdamosEventData eventData) {
+	
+	private boolean createAdamosEvent(AdamosEventData eventData) {
 		try {
 			URI uriService = UriComponentsBuilder
 					.fromUriString(hubConnectorService.getGlobalSettings().getAdamosEventServiceEndpoint())
@@ -292,9 +266,7 @@ public class EventRulesService {
 		if (obj != null) {
 			obj.setProperty(CustomProperties.HUB_EVENTRULES_FROM_HUB_OBJECT_TYPE, eventRules);
 			obj.setLastUpdatedDateTime(null);
-			service.runForTenant(tenant, () -> {
-				inventoryApi.update(obj);
-			});
+			cumulocityService.updateManagedObject(obj);
 		}
 
 	}
@@ -305,9 +277,7 @@ public class EventRulesService {
 		if (obj != null) {
 			obj.setProperty(CustomProperties.HUB_EVENTRULES_TO_HUB_OBJECT_TYPE, eventMapping);
 			obj.setLastUpdatedDateTime(null);
-			service.runForTenant(tenant, () -> {
-				inventoryApi.update(obj);
-			});
+			cumulocityService.updateManagedObject(obj);
 		}
 	}
 

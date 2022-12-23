@@ -16,8 +16,6 @@ import com.adamos.hubconnector.model.HubConnectorGlobalSettings;
 import com.adamos.hubconnector.model.HubConnectorSettings;
 import com.adamos.hubconnector.model.OAuth2Credentials;
 import com.adamos.hubconnector.model.SimpleSyncConfiguration;
-import com.cumulocity.rest.representation.identity.ExternalIDRepresentation;
-import com.cumulocity.rest.representation.inventory.ManagedObjectRepresentation;
 import com.cumulocity.rest.representation.tenant.OptionRepresentation;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -164,17 +162,4 @@ public class HubConnectorService {
 		
 		return settings;
 	}	
-	
-	public ManagedObjectRepresentation getDeviceByHubUuid(String uuid) {
-		ManagedObjectRepresentation managedObjectRepresentation = cumulocityService.getManagedObjectByCustomId(CustomProperties.Machine.IDENTITY_TYPE, uuid);
-		if (managedObjectRepresentation == null) {
-			appLogger.warn("Could not find HubDevice with uuid = " + uuid);
-		}
-		
-		return managedObjectRepresentation;
-	}
-	
-	public ExternalIDRepresentation getExternalIdByHubUuid(String uuid) {
-		return cumulocityService.getExternalIDRepresentationByCustomId(CustomProperties.Machine.IDENTITY_TYPE, uuid);
-	}
 }

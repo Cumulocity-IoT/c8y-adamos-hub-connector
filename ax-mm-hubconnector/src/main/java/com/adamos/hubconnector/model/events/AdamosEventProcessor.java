@@ -7,7 +7,6 @@ import org.slf4j.LoggerFactory;
 
 import com.adamos.hubconnector.model.hub.AmqpMessageDTO;
 import com.adamos.hubconnector.services.CumulocityService;
-import com.adamos.hubconnector.services.HubConnectorService;
 import com.cumulocity.rest.representation.alarm.AlarmRepresentation;
 import com.cumulocity.rest.representation.event.EventRepresentation;
 import com.cumulocity.rest.representation.inventory.ManagedObjectRepresentation;
@@ -34,9 +33,6 @@ public class AdamosEventProcessor extends EventProcessor {
 	private AdamosProcessingMode processingMode = AdamosProcessingMode.PERSISTENT;	// defines the processing-mode
 	
 	@JsonIgnore(value=true)
-	private HubConnectorService hubConnectorService;
-	
-	@JsonIgnore(value=true)
 	private CumulocityService cumulocityService;
 	
 	@Override
@@ -49,7 +45,7 @@ public class AdamosEventProcessor extends EventProcessor {
 			DocumentContext messageContext = getJsonContext(payloadAsJson);
 			
 			// Every event has a referenceId to an device in Hub -> if the device is connected/mapped to this tenant we will find it
-	    	ManagedObjectRepresentation device = hubConnectorService.getDeviceByHubUuid(amqpMessage.getReferenceObjectId());
+	    	ManagedObjectRepresentation device = cumulocityService.getDeviceByHubUuid(amqpMessage.getReferenceObjectId());
 	    	
 			if (device != null) {
 				// To be able to use jsonPath on the deviceContext we have to parse it
