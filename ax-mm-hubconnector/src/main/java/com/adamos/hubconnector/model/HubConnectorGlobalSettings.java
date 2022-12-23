@@ -62,19 +62,19 @@ public class HubConnectorGlobalSettings {
 	}
 
 	public String getOAuthEndpoint() {
-		return "https://" + environment + "/auth-service/token";
+		return "https://services." + environment + "/auth-service/token";
 	}
 
 	public String getAdamosMdmServiceEndpoint() {
-		return "https://" + environment + "/mdm-service/v1/";
+		return "https://services." + environment + "/mdm-service/v1/";
 	}
 
 	public String getAdamosCatalogServiceEndpoint() {
-		return "https://" + environment + "/catalog-service/v1/";
+		return "https://services." + environment + "/catalog-service/v1/";
 	}
 
 	public String getAdamosEventServiceEndpoint() {
-		return "https://" + environment + "/event-service/v1/";
+		return "https://services." + environment + "/event-service/v1/";
 	}
 
 	public String getAdamosAmqpEndpoint() {
