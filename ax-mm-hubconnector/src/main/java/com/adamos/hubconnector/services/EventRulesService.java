@@ -209,7 +209,9 @@ public class EventRulesService {
 		List<AdamosEventAttribute> result = new ArrayList<>();
 		try {
 			Object value = util.getPropertyPath(event, c8yPropertyPath);
-			if (value instanceof List<?>) {
+			if (value == null) {
+				// skip
+			} else if (value instanceof List<?>) {
 				AdamosEventAttribute[] attributes = mapper.convertValue(value, AdamosEventAttribute[].class);
 				result.addAll(Arrays.asList(attributes));
 
@@ -233,7 +235,7 @@ public class EventRulesService {
 		} catch (IllegalArgumentException iae) {
 			appLogger.warn("Parsing failed for path " + c8yPropertyPath + ". Skipping this attribute for event "
 					+ event.getId().getValue());
-			appLogger.debug("Parsing error " + iae.getMessage());
+			appLogger.debug("Parsing error: " + iae.getMessage());
 
 		}
 		return result;
