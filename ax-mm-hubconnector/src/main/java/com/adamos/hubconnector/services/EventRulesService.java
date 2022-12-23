@@ -112,7 +112,7 @@ public class EventRulesService {
 
 			for (EventMapping mapping : mappings) {
 				if (mapping.isEnabled()) {
-					ArrayList<String> relevantHubDeviceIds = mapping.getC8yDevices();
+					List<String> relevantHubDeviceIds = mapping.getC8yDevices();
 					// filter for c8y devices which were configured in the mapping via c8yDevices
 					List<ManagedObjectRepresentation> devicesFromMapping = (relevantHubDeviceIds == null
 							|| relevantHubDeviceIds.isEmpty()) ? hubDevices
