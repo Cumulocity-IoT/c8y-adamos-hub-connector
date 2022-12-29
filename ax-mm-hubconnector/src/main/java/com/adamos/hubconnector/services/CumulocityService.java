@@ -1,5 +1,7 @@
 package com.adamos.hubconnector.services;
 
+import java.time.Instant;
+import java.util.Date;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
@@ -30,14 +32,17 @@ import com.adamos.hubconnector.model.hub.hierarchy.SiteDTO;
 import com.adamos.hubconnector.model.hub.hierarchy.TreeNode;
 import com.cumulocity.microservice.subscription.service.MicroserviceSubscriptionsService;
 import com.cumulocity.model.ID;
-import com.cumulocity.model.idtype.GId;
 import com.cumulocity.rest.representation.alarm.AlarmRepresentation;
 import com.cumulocity.rest.representation.event.EventRepresentation;
 import com.cumulocity.rest.representation.identity.ExternalIDRepresentation;
 import com.cumulocity.rest.representation.inventory.ManagedObjectRepresentation;
 import com.cumulocity.rest.representation.measurement.MeasurementRepresentation;
 import com.cumulocity.rest.representation.tenant.OptionRepresentation;
+import com.cumulocity.sdk.client.Param;
+import com.cumulocity.sdk.client.QueryParam;
 import com.cumulocity.sdk.client.SDKException;
+import com.cumulocity.sdk.client.event.EventApi;
+import com.cumulocity.sdk.client.event.EventFilter;
 import com.cumulocity.sdk.client.identity.IdentityApi;
 import com.cumulocity.sdk.client.inventory.InventoryApi;
 import com.cumulocity.sdk.client.inventory.InventoryFilter;
@@ -74,8 +79,17 @@ public class CumulocityService {
 	private IdentityApi identityApi;
 	
 	@Autowired
+	private EventApi eventApi;
+	
+	@Autowired
 	private TenantOptionApi tenantOptionApi;
 	
+	QueryParam revertParam = new QueryParam(new Param() {
+		@Override
+		public String getName() {
+			return "revert";
+		}
+	}, "true");
 	
 	public CumulocityService(RestTemplateBuilder restTemplateBuilder) {
 		restTemplate = restTemplateBuilder.build();
@@ -109,10 +123,6 @@ public class CumulocityService {
 		return null;
 	}
 	
-	public MeasurementRepresentation createMeasurement(MeasurementRepresentation measurement, AdamosProcessingMode processingMode) {
-		return this.createMeasurement(measurement.toJSON(), processingMode);
-	}
-	
 	public EventRepresentation createEvent(String json, AdamosProcessingMode processingMode) {
 		service.callForTenant(tenant, () -> {
 			try {
@@ -128,9 +138,13 @@ public class CumulocityService {
 		return null;
 	}
 	
-	public EventRepresentation createEvent(EventRepresentation event, AdamosProcessingMode processingMode) {
-		return createEvent(event.toJSON(), processingMode);
+	public Iterable<EventRepresentation> getEvents(ManagedObjectRepresentation device, String type, Instant fromDate) {
+		return eventApi.getEventsByFilter(
+				new EventFilter().bySource(device.getId()).byType(type)
+						.byFromCreationDate(Date.from(fromDate)))
+				.get(2000, revertParam).allPages();
 	}
+
 	
 	public AlarmRepresentation createAlarm(String json, AdamosProcessingMode processingMode) {
 		service.callForTenant(tenant, () -> {
@@ -145,10 +159,6 @@ public class CumulocityService {
 		});
 		
 		return null;
-	}	
-
-	public AlarmRepresentation createAlarm(AlarmRepresentation alarm, AdamosProcessingMode processingMode) {
-		return this.createAlarm(alarm.toJSON(), processingMode);
 	}	
 
 	public List<ManagedObjectRepresentation> getManagedObjectsByFragmentType(String fragmentType) {
@@ -176,34 +186,6 @@ public class CumulocityService {
 			return null;
 		});
 	}	
-
-	public ExternalIDRepresentation setIdentity(long id, String typeName, String externalId) {
-		return service.callForTenant(tenant, () -> {
-			ManagedObjectRepresentation obj = new ManagedObjectRepresentation(); // inventoryApi.get(GId.asGId(id));
-			obj.setId(GId.asGId(id));
-			ExternalIDRepresentation externalIdObj = new ExternalIDRepresentation();
-			externalIdObj.setExternalId(externalId);
-			externalIdObj.setType(typeName);
-			externalIdObj.setManagedObject(obj);
-			
-			return identityApi.create(externalIdObj);
-		});
-	}
-
-	public void deleteIdentity(String typeName, String externalId) {
-		ExternalIDRepresentation exObj = new ExternalIDRepresentation();
-		exObj.setType(typeName);
-		exObj.setExternalId(externalId);
-		
-		try {
-			identityApi.deleteExternalId(exObj);
-		} catch (SDKException e) {
-			// NotFound ignore
-			if (e.getHttpStatus() != 404) {
-				throw e;
-			}
-		}
-	}
 	
 	public ManagedObjectRepresentation getManagedObjectByFragmentType(String fragmentType) {
 		return service.callForTenant(tenant, () -> {
@@ -273,6 +255,19 @@ public class CumulocityService {
 		});
 	}	
 	
+	public ManagedObjectRepresentation getDeviceByHubUuid(String uuid) {
+		ManagedObjectRepresentation managedObjectRepresentation = getManagedObjectByCustomId(CustomProperties.Machine.IDENTITY_TYPE, uuid);
+		if (managedObjectRepresentation == null) {
+			appLogger.warn("Could not find HubDevice with uuid = " + uuid);
+		}
+		
+		return managedObjectRepresentation;
+	}
+	
+	public ExternalIDRepresentation getExternalIdByHubUuid(String uuid) {
+		return getExternalIDRepresentationByCustomId(CustomProperties.Machine.IDENTITY_TYPE, uuid);
+	}
+	
 	public boolean updateHubData(MDMObjectDTO object, String objectIdentityType) {
 		ExternalIDRepresentation externalIDRepresentation = getExternalIDRepresentationByCustomId(objectIdentityType, object.getUuid());
 		if (externalIDRepresentation != null) {
@@ -302,7 +297,6 @@ public class CumulocityService {
 	}
 
 	private <T extends LocationAssetDTO> TreeNode<MDMObjectDTO> addChildren(TreeNode<MDMObjectDTO> tree, List<ManagedObjectRepresentation> list, Class clazz) {
-//	private <T extends MDMObjectDTO> TreeNode<MDMObjectDTO> addChildren(TreeNode<MDMObjectDTO> tree, List<ManagedObjectRepresentation> list, Class clazz) {	
 		for (ManagedObjectRepresentation element : list) {
 			T castedElement = (T)mapper.convertValue(element.getProperty(CustomProperties.HUB_DATA), clazz);
 
@@ -349,7 +343,6 @@ public class CumulocityService {
 
 		return tree;
 	}
-
 		
 	public List<OptionRepresentation> getTenantOptions() {
 		return service.callForTenant(tenant, () -> {

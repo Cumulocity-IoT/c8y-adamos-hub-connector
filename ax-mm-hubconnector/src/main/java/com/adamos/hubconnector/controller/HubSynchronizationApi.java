@@ -22,6 +22,7 @@ import com.adamos.hubconnector.model.ImportStatistics;
 import com.adamos.hubconnector.model.SyncTuple;
 import com.adamos.hubconnector.model.exceptions.SynchronizationException;
 import com.adamos.hubconnector.model.hub.EquipmentDTO;
+import com.adamos.hubconnector.services.CumulocityService;
 import com.adamos.hubconnector.services.HubConnectorService;
 import com.adamos.hubconnector.services.HubService;
 import com.cumulocity.rest.representation.inventory.ManagedObjectRepresentation;
@@ -35,6 +36,10 @@ public class HubSynchronizationApi {
 
 	@Autowired
 	private HubConnectorService hubConnectorService;
+	
+	@Autowired
+	private CumulocityService cumulocityService;
+
 
 	private static final Logger logger = LoggerFactory.getLogger(HubSynchronizationApi.class);
 
@@ -170,7 +175,7 @@ public class HubSynchronizationApi {
 			@RequestParam(value = "source", defaultValue = "hub") String source) {
 		try {
 			if (hubService.checkAndUpdateDevice(uuid, source.equals("hub"), true)) {
-				ManagedObjectRepresentation device = hubConnectorService.getDeviceByHubUuid(uuid);
+				ManagedObjectRepresentation device = cumulocityService.getDeviceByHubUuid(uuid);
 				return new ResponseEntity<ManagedObjectRepresentation>(device, HttpStatus.OK);
 			}
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);

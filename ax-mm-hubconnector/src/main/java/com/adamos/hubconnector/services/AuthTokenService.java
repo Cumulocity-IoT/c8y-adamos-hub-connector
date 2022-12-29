@@ -23,14 +23,10 @@ import org.springframework.web.client.RestTemplate;
 import com.adamos.hubconnector.model.HubConnectorGlobalSettings;
 import com.adamos.hubconnector.model.OAuth2Credentials;
 import com.adamos.hubconnector.model.OAuth2Token;
-import com.cumulocity.sdk.client.inventory.InventoryApi;
 
 @Service
 public class AuthTokenService {
     private static final Logger LOGGER = LoggerFactory.getLogger(CumulocityService.class);
-
-    @Autowired
-    InventoryApi inventoryApi;
 
     @Autowired
     private HubConnectorService hubConnectorService;
@@ -49,7 +45,7 @@ public class AuthTokenService {
         }
     }
 
-    public OAuth2Token getCurrentToken() {
+    private OAuth2Token getCurrentToken() {
         readLock.lock();
         try {
             return this.currentToken;
@@ -119,8 +115,6 @@ public class AuthTokenService {
     }
 
     public OAuth2Token getToken() {
-        // get globalSettings - this object is always created with the first
-        // subscription of the service!
         HubConnectorGlobalSettings globalSettings = hubConnectorService.getGlobalSettings();
 
         if (!globalSettings.getOAuth2Credentials().initialized()) {
@@ -138,9 +132,7 @@ public class AuthTokenService {
             OAuth2Token token = getCurrentToken();
             if (DateTime.now().isAfter(token.getExpiryDate())) {
                 try {
-                    // get a new token with the help of the refresh-token we got with the last
-                    // session
-                    // token = getNewTokenViaRefreshToken(token.getRefreshToken(), body);
+                	// token = getNewTokenViaRefreshToken(token.getRefreshToken(), body);
                     token = getNewToken(body);
                 } catch (org.springframework.web.client.HttpClientErrorException ex) {
                     LOGGER.error("Error while trying to get a new token via refresh token.", ex);

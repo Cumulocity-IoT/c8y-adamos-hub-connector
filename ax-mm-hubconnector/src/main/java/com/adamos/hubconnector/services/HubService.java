@@ -87,6 +87,9 @@ public class HubService {
 	@Autowired
 	private MicroserviceSubscriptionsService service;
 
+	@Autowired
+	private CumulocityService cumulocityService;
+	
 	@Value("${C8Y.tenant}")
 	private String tenant;
 
@@ -402,7 +405,7 @@ public class HubService {
 			throw new SynchronizationException("Cumulocity IoT Device is already linked");
 		}
 		// ADAMOS device is already linked to another c8y device
-		if (hubConnectorService.getExternalIdByHubUuid(adamosUUID) != null) {
+		if (cumulocityService.getExternalIdByHubUuid(adamosUUID) != null) {
 			throw new SynchronizationException("ADAMOS Hub Device is already linked");
 		}
 		// validation done - let's go!
@@ -458,7 +461,7 @@ public class HubService {
 		return service.callForTenant(tenant, () -> {
 			boolean isChangeDetected = false;
 
-			ManagedObjectRepresentation device = hubConnectorService.getDeviceByHubUuid(uuid);
+			ManagedObjectRepresentation device = cumulocityService.getDeviceByHubUuid(uuid);
 			if (device != null) {
 				HubConnectorSettings settings = getConnectorSettingsByObj(device);
 
@@ -476,7 +479,7 @@ public class HubService {
 
 	public boolean deleteDeviceInC8Y(String uuid) {
 		return service.callForTenant(tenant, () -> {
-			ManagedObjectRepresentation device = hubConnectorService.getDeviceByHubUuid(uuid);
+			ManagedObjectRepresentation device = cumulocityService.getDeviceByHubUuid(uuid);
 			if (device != null) {
 				inventoryApi.delete(device.getId());
 				return true;
@@ -499,7 +502,7 @@ public class HubService {
 		return service.callForTenant(tenant, () -> {
 			boolean isChangeDetected = false;
 
-			ManagedObjectRepresentation device = hubConnectorService.getDeviceByHubUuid(uuid);
+			ManagedObjectRepresentation device = cumulocityService.getDeviceByHubUuid(uuid);
 			if (device != null) {
 				HubConnectorSettings settings = getConnectorSettingsByObj(device);
 
@@ -640,7 +643,7 @@ public class HubService {
 		List<EquipmentDTO> disconnectedMachineTools = new ArrayList<EquipmentDTO>();
 
 		for (EquipmentDTO machineTool : allMachineTools) {
-			if (hubConnectorService.getExternalIdByHubUuid(machineTool.getUuid()) == null) {
+			if (cumulocityService.getExternalIdByHubUuid(machineTool.getUuid()) == null) {
 				disconnectedMachineTools.add(machineTool);
 			}
 		}
@@ -712,7 +715,7 @@ public class HubService {
 			ManagedObjectRepresentation target = null;
 
 			try {
-				if (hubConnectorService.getExternalIdByHubUuid(uuid) == null) {
+				if (cumulocityService.getExternalIdByHubUuid(uuid) == null) {
 					target = new ManagedObjectRepresentation();
 
 					target.setName(source.getCustomerIdentification().getName());

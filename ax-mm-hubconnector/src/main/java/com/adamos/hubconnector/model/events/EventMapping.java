@@ -1,6 +1,7 @@
 package com.adamos.hubconnector.model.events;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -12,9 +13,9 @@ import lombok.Data;
 public class EventMapping {
 
     private String c8yEventType;
-    private ArrayList<String> c8yDevices;
+    private List<String> c8yDevices;
     private String adamosEventType;
-    private ArrayList<String> c8yFragments;
+    private List<String> c8yFragments;
 
     private String id;
     private String name;
