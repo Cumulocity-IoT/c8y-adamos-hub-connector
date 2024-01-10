@@ -1,3 +1,5 @@
+# !!! Archived -- this repository is currently not actively maintained!
+
 # Cumulocity IoT ADAMOS Hub Connector (c8y-adamos-hub-connector)
 The Cumulocity IoT ADAMOS Hub Connector provides 2-way synchronization of devices between ADAMOS Hub Services and a Cumulocity IoT Tenant. The following functionality is provided:
 
